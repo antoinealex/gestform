@@ -87,6 +87,9 @@
     "laminas/laminas-zendframework-bridge": {
         "version": "1.0.1"
     },
+    "nikic/php-parser": {
+        "version": "v4.3.0"
+    },
     "ocramius/package-versions": {
         "version": "1.7.0"
     },
@@ -207,6 +210,15 @@
     "symfony/inflector": {
         "version": "v4.4.5"
     },
+    "symfony/maker-bundle": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
+        }
+    },
     "symfony/mime": {
         "version": "v4.4.5"
     },
@@ -247,6 +259,18 @@
     },
     "symfony/security": {
         "version": "v4.4.5"
+    },
+    "symfony/security-bundle": {
+        "version": "4.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "4.4",
+            "ref": "7b4408dc203049666fe23fabed23cbadc6d8440f"
+        },
+        "files": [
+            "./config/packages/security.yaml"
+        ]
     },
     "symfony/service-contracts": {
         "version": "v2.0.1"
