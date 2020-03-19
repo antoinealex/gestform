@@ -43,13 +43,11 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listTraining", "Trainingdetails"})
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
-     * @Groups({"listTraining", "Trainingdetails"})
      */
     private $phone;
 
