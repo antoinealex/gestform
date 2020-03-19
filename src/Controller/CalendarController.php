@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,16 +17,40 @@ use App\Entity\User;
 
 class CalendarController extends AbstractController
 {
-	/* -----------*/
+    /**
+     * Entity Manager for Calendar event
+     */
+    private $calendarEm;
+
+    /**
+     * Entity Manager for user
+     */
+    private $userEm;
+
+    public function __construct()
+    {
+        $this->calendarEm = $this->getDoctrine()->getRepository(CalendarEvent::class);
+        $this->userEm = $this->getDoctrine()->getRepository(User::class);
+    }
+    /* -----------*/
 	/* ----GET----*/
 	/* -----------*/
 
-	/**
-	 * @Route("/user_event", name="user", methods={"GET"})
-	 */
-	public function getUserEvents() : Response
+    /**
+     * @Route("/user_event", name="user", methods={"GET"})
+     * @param Request $request
+     * @return Response
+     */
+	public function getUserEvents(Request $request) : Response
 	{
+        $userId = $request->query->get('userID');
+        $user = $this->userEm->findOneById($userId);
+        $events = $user->getOwnCalendarEvents();
+        foreach ($events as $event) {
+            $eventsArray[] = $event->fetchArray();
+        }
 
+        return json_encode($eventsArray);
 	}
 
 	/**
