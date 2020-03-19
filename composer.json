@@ -15,9 +15,14 @@
         "symfony/profiler-pack": "^1.0",
         "symfony/security": "4.4.*",
         "symfony/security-bundle": "4.4.*",
+<<<<<<< HEAD
 
         "symfony/serializer-pack": "^1.0",
         "symfony/yaml": "4.4.*"
+=======
+        "symfony/yaml": "4.4.*",
+        "ext-json": "*"
+>>>>>>> 8cb46f1ce13eafa5f14697a1152ed7d022362d04
     },
     "require-dev": {
         "symfony/web-server-bundle": "4.4.*"
