@@ -3,18 +3,17 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\CalendarEvent;
 use App\Entity\Comments;
+use App\Entity\CalendarEvent;
 use App\Repository\UserRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- */
+
 
 class StudentController extends AbstractController
 {
