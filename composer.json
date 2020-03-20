@@ -15,9 +15,11 @@
         "symfony/profiler-pack": "^1.0",
         "symfony/security": "4.4.*",
         "symfony/security-bundle": "4.4.*",
+        "symfony/serializer": "4.4.*",
         "symfony/yaml": "4.4.*"
     },
     "require-dev": {
+        "symfony/web-server-bundle": "4.4.*"
     },
     "config": {
         "preferred-install": {
