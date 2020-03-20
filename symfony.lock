@@ -97,7 +97,7 @@
         "version": "2.7.0"
     },
     "php": {
-        "version": "7.3"
+        "version": "7.4"
     },
     "phpdocumentor/reflection-common": {
         "version": "2.0.0"
@@ -246,9 +246,6 @@
     "symfony/polyfill-php73": {
         "version": "v1.14.0"
     },
-    "symfony/process": {
-        "version": "v4.4.5"
-    },
     "symfony/profiler-pack": {
         "version": "v1.0.4"
     },
@@ -289,9 +286,6 @@
     },
     "symfony/serializer": {
         "version": "v4.4.5"
-    },
-    "symfony/serializer-pack": {
-        "version": "v1.0.2"
     },
     "symfony/service-contracts": {
         "version": "v2.0.1"
@@ -339,15 +333,6 @@
             "./config/routes/dev/web_profiler.yaml"
         ]
     },
-    "symfony/web-server-bundle": {
-        "version": "3.3",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "3.3",
-            "ref": "dae9b39fd6717970be7601101ce5aa960bf53d9a"
-        }
-    },
     "symfony/yaml": {
         "version": "v4.4.5"
     },
@@ -359,11 +344,5 @@
     },
     "webmozart/assert": {
         "version": "1.7.0"
-    },
-    "zendframework/zend-code": {
-        "version": "3.4.1"
-    },
-    "zendframework/zend-eventmanager": {
-        "version": "3.2.1"
     }
 }
