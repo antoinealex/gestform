@@ -1,12 +1,14 @@
 <?php
 
-namespace app\Controller;
+namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\CalendarEvent;
 use App\Entity\Comments;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 
 
