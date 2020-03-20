@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Training;
+//use App\Entity\User;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrainingController extends AbstractController
@@ -20,9 +21,9 @@ class TrainingController extends AbstractController
      * @Route("/training", name="training", methods={"GET"})
      * 
      */
-    public function getAllTraining(TrainingRepository $training, SerializerInterface $serializer)
+    public function getAllTraining(TrainingRepository $allTraining, SerializerInterface $serializer)
     {
-        $subject = $training->findAll(); //Récupérer tous les cours
+        $subject = $allTraining->findAll(); //Récupérer tous les cours
         $resultat = $serializer->serialize( //Les transformer en format Json  
             $subject, //Il doit serialiser $subject
             'json', //Au format Json
@@ -44,21 +45,31 @@ class TrainingController extends AbstractController
             $subject,
             'json',
             [
-                'groups'  => ['Trainingdetails']
+                'groups'  => ['TrainingDetails']
             ]
         );
         return new JsonResponse($resultat, Response::HTTP_OK, [], true);
     }
+
+
+
+
+    public function getStudentTraining()
+    {
+
+    }
+
+
 
     /**
      * @Route("/training", name="training_create", methods={"POST"})
      */
     public function addTraining(Request $request, EntityManagerInterface $manager, SerializerInterface $serializer)
     {
-        $data = $request->getContent(); //Obtenir le contenu de la requete
-        $training = $serializer->deserialize($data, // On instancie un nouveau cours "training" sans passer par new afin de gagner une ligne. Déserialise ce qu'il y a dans data. 
-        Training::class, // Déserialisation pour former un objet de type "training".  
-        'json'); //Format du contenu à déserialiser = Json
+        $data = $request->getContent();               //Obtenir le contenu de la requete
+        $training = $serializer->deserialize($data,   // On instancie un nouveau cours "training" sans passer par new afin de gagner une ligne. Déserialise ce qu'il y a dans $data. 
+        Training::class,                              // Déserialisation pour former un objet "training".  
+        'json');                                      //Format du contenu à déserialiser = Json
         //$training est le resultat de la deserialisation de data
         $manager->persist($training);
         $manager->flush();
@@ -66,6 +77,17 @@ class TrainingController extends AbstractController
         return new JsonResponse(null, Response::HTTP_CREATED, [ //Pour une création, on ne retourne pas de résultat, je retourn donc un resultat "null" ainsi que le code statut 201 signifiant que l'objet a bien été crée
             "location"=>"api/genres/" . $training->getId() //ce nouvel objet sera joignable à cette adresse
         ], true);
+    }
+
+
+    public function updateNbStudents()
+    {
+
+    }
+
+    public function deleteTraining()
+    {
+        
     }
 
 }
