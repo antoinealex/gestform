@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\TrainingRepository")
@@ -20,42 +21,50 @@ class Training
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $startTraining;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $endTraining;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"TrainingDetails"})
      */
     private $maxStudent;
 
     /**
      * @ORM\Column(type="float", nullable=true)
+     * @Groups({"TrainingDetails"})
      */
     private $pricePerStudent;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     * @Groups({"TrainingDetails"})
      */
     private $trainingDescription;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\User", inversedBy="studentTrainings")
+     * @Groups({"TrainingDetails"})
      */
     private $participants;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="teacherTrainings")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $teacher;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $subject;
 
