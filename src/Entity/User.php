@@ -2,11 +2,14 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\Comments;
+use App\Entity\Training;
+use App\Entity\CalendarEvent;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
@@ -17,11 +20,13 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"listUserSimple"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $email;
 
@@ -38,31 +43,37 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $phone;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $address;
 
     /**
      * @ORM\Column(type="string", length=6, nullable=true)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $postcode;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"listUserFull","listUserSimple"})
      */
     private $city;
 

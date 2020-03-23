@@ -16,55 +16,56 @@ class Training
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"listTraining", "Trainingdetails"})
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $startTraining;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"listTraining", "Trainingdetails"})
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $endTraining;
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"Trainingdetails"})
+     * @Groups({"TrainingDetails"})
      */
     private $maxStudent;
 
     /**
      * @ORM\Column(type="float", nullable=true)
-     * @Groups({"Trainingdetails"})
+     * @Groups({"TrainingDetails"})
      */
     private $pricePerStudent;
 
     /**
      * @ORM\Column(type="text", nullable=true)
-     * @Groups({"Trainingdetails"})
+     * @Groups({"TrainingDetails"})
      */
     private $trainingDescription;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\User", inversedBy="studentTrainings")
-     * @Groups({"Trainingdetails"})
+     * @Groups({"TrainingDetails"})
      */
     private $participants;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="teacherTrainings")
      * @ORM\JoinColumn(nullable=false)
-     * @Groups({"listTraining", "Trainingdetails"})
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $teacher;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"listTraining", "Trainingdetails"})
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $subject;
 
