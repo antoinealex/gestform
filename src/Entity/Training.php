@@ -16,6 +16,7 @@ class Training
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"listTraining", "TrainingDetails"})
      */
     private $id;
 

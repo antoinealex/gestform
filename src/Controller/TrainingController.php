@@ -8,11 +8,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Annotation\Groups;
-//use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Training;
-//use App\Entity\User;
+use App\Entity\User;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrainingController extends AbstractController
@@ -25,8 +24,8 @@ class TrainingController extends AbstractController
     {
         $subject = $allTraining->findAll(); //Récupérer tous les cours
         $resultat = $serializer->serialize( //Les transformer en format Json  
-            $subject, //Il doit serialiser $subject
-            'json', //Au format Json
+            $subject,                       //Il doit serialiser $subject
+            'json',                         //Au format Json
             [
                 'groups'  => ['listTraining'] //Qui sont dans le groupe "listTraining"
             ]
@@ -36,29 +35,27 @@ class TrainingController extends AbstractController
 
     /**
      * @Route("/training/{id}", name="training_details", methods={"GET"})
-     * 
      */
     public function getTrainingById(Training $training, SerializerInterface $serializer)
     {
-        $subject = $training->findAll();
         $resultat = $serializer->serialize(
-            $subject,
+            $training,
             'json',
             [
                 'groups'  => ['TrainingDetails']
             ]
         );
-        return new JsonResponse($resultat, Response::HTTP_OK, [], true);
+        return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
     }
 
 
 
-
+/*
     public function getStudentTraining()
     {
 
     }
-
+*/
 
 
     /**
@@ -74,20 +71,35 @@ class TrainingController extends AbstractController
         $manager->persist($training);
         $manager->flush();
 
-        return new JsonResponse(null, Response::HTTP_CREATED, [ //Pour une création, on ne retourne pas de résultat, je retourn donc un resultat "null" ainsi que le code statut 201 signifiant que l'objet a bien été crée
-            "location"=>"api/genres/" . $training->getId() //ce nouvel objet sera joignable à cette adresse
+        return new JsonResponse("Le cours a été crée", Response::HTTP_CREATED, [ //Pour une création, on ne retourne pas de résultat, je retourn donc un resultat "null" ainsi que le code statut 201 signifiant que l'objet a bien été crée
+            "location"=>"api/genres/" . $training->getId()      //ce nouvel objet sera joignable à cette adresse
         ], true);
     }
 
-
-    public function updateNbStudents()
+    /**
+     * @Route("/training/{id}", name="training_update", methods={"PUT"})
+     */
+    public function updateNbStudents(Training $training, Request $request, EntityManagerInterface $manager, SerializerInterface $serializer)
     {
+        $data=$request->getContent();
+        $resultat = $serializer->deserialize($data, Training::class, 'json', ['object_to_populate'=>$training]);
+
+        $manager->persist($training);
+        $manager->flush();
+
+        return new JsonResponse("Le cours a été modifié", Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
 
     }
 
-    public function deleteTraining()
+    /**
+     * @Route("/training/{id}", name="training_delete", methods={"DELETE"})
+     */
+    public function deleteTraining(Training $training, EntityManagerInterface $manager)
     {
-        
+        $manager->remove($training);
+        $manager->flush();
+
+        return new JsonResponse("Le cours a été supprimé", Response::HTTP_OK, []); //On retire le "true" puisqu'on envoi rien qui est en json
     }
 
 }
