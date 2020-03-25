@@ -99,27 +99,31 @@ class TeacherController extends AbstractController
     }
 
     /**
-     * @Route("/teacher/new", name= "NewTeacher")
+     * @Route("/teacher_new", name= "NewTeacher", methods={"POST"})
      *
      * @return Response
+     * @param Request
      */
-    public function NewTeacher(): Response
+    public function NewTeacher(Request $request): Response
     {
-        /*
-        $teacher = new User();
-        $teacher->setEmail('krajdali@mail.com')
-            ->setRoles(['teacher'])
-            ->setPassword('0000')
-            ->setLastname('khalid')
-            ->setFirstname('rajdali')
-            ->setPhone('060606060')
-            ->setAddress('20, rue du test')
-            ->setPostcode('59200')
-            ->setCity('Tourcoing');
+        $newteacher = new User();
+        $newteacher->setEmail($request->request->get('email'))
+            ->setRoles([$request->request->get('role')])
+            ->setPassword($request->request->get('password'))
+            ->setLastname($request->request->get('lastname'))
+            ->setFirstname($request->request->get('firstname'))
+            ->setPhone($request->request->get('phone'))
+            ->setAddress($request->request->get('address'))
+            ->setPostcode($request->request->get('postcode'))
+            ->setCity($request->request->get('city'));
+
         $em = $this->getDoctrine()->getManager();
-        $em->persist($teacher);
+        $em->persist($newteacher);
         $em->flush();
-        return new Response('Teacher ajouter!');*/
+
+        $response = new Response(json_encode('Bien crée avec succès!'));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
     }
 
     /**
