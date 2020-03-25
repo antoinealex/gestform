@@ -101,8 +101,9 @@ class TeacherController extends AbstractController
     /**
      * @Route("/teacher_new", name= "NewTeacher", methods={"POST"})
      *
-     * @return Response
      * @param Request
+     * @return Response
+     *
      */
     public function NewTeacher(Request $request): Response
     {
@@ -154,11 +155,21 @@ class TeacherController extends AbstractController
     }
 
     /**
-     * Undocumented function
-     *
-     * @return void
+     * Used to delete a Teacher
+     * 
+     * @Route("/teacher_delete", name= "DeleteTeacher", methods={"DELETE"})
+     * @param Request $request
+     * @return Response
      */
-    public function DeleteTeacher()
+    public function DeleteTeacher(Request $request)
     {
+        $id = $request->query->get('id');
+        $teacher = $this->userrepository->findTeacher($id);
+        $this->em->remove($teacher);
+        $this->em->flush();
+
+        $response = new Response(json_encode('Suprimé avec succès!'));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
     }
 }
