@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Training;
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 
 class TrainingController extends AbstractController
@@ -34,10 +35,13 @@ class TrainingController extends AbstractController
     }
 
     /**
-     * @Route("/training/{id}", name="training_details", methods={"GET"})
+     * @Route("/trainingById", name="training_id", methods={"GET"})
      */
-    public function getTrainingById(Training $training, SerializerInterface $serializer)
+    public function getTrainingById(Request $request, SerializerInterface $serializer)
     {
+        $trainingId = $request->query->get('id');
+        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+        
         $resultat = $serializer->serialize(
             $training,
             'json',
