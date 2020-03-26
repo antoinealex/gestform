@@ -129,22 +129,27 @@ class TrainingController extends AbstractController
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        // On prend toutes les données envoyés en POST
-        $start_training =$request->request->get("start_training");
-        $end_training =$request->request->get("end_training");
-        $max_student =$request->request->get("max_student");
-        $price_per_student =$request->request->get("price_per_student");
-        $training_description =$request->request->get("training_description");
-        $subject =$request->request->get("subject");
+        // On prend toutes les données envoyés en PUT
+        $id = $content["id"];
+        $start_training = $content["start_training"];
+        $end_training = $content["end_training"];
+        $max_student = $content["max_student"];
+        $price_per_student = $content["price_per_student"];
+        $training_description = $content["training_description"];
+        $subject = $content["subject"];
 
-        // On créé l'objet Training
+        //Get the event from DBAL
+        $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($id);
+
+        //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
+
+        //Prepare HTTP Response
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
-        $training = new Training();
 
         try {
-            $training->setTeacher($teacher);
+            //$training->setTeacher($teacher);
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
@@ -171,15 +176,39 @@ class TrainingController extends AbstractController
 
     }
 
-    /**
-     * @Route("/deleteTraining/{id}", name="training_delete", methods={"DELETE"})
-     */
-    public function deleteTraining(Training $training, EntityManagerInterface $manager)
-    {
-        $manager->remove($training);
-        $manager->flush();
 
-        return new JsonResponse("Le cours a été supprimé", Response::HTTP_OK, []); //On retire le "true" puisqu'on envoi rien qui est en json
+
+
+    /**
+     * @Route("/deleteTraining", name="delete_training", methods={"DELETE"})
+     */
+    public function deleteTraining(Request $request): Response
+    {
+        //Get Entity Manager and prepare response
+        $em = $this->getDoctrine()->getManagerForClass(Training::class);
+
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Get training object to delete
+        $trainingId = $request->query->get("id");
+
+        try {
+            $training = $em->getRepository(Training::class)->findOneByID($trainingId);
+        } catch (NonUniqueResultException $e) {
+            $response->setContent(json_encode(["success" => "error 1"]));
+        }
+
+        //Remove object
+        try {
+            $em->remove($training);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => "error 2"]));
+        }
+        return $response;
     }
+
 
 }
