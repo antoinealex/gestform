@@ -31,8 +31,7 @@ class CalendarEventRepository extends ServiceEntityRepository
             ->orderBy('c.id', 'ASC')
             ->setMaxResults(10)
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
 
     /**
@@ -46,8 +45,22 @@ class CalendarEventRepository extends ServiceEntityRepository
             ->andWhere('c.id = :val')
             ->setParameter('val', $id)
             ->getQuery()
-            ->getOneOrNullResult()
-            ;
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * return calendar event by user id
+     *
+     * @param int $userid
+     * @return CalendarEvent
+     */
+    public function findCalendarByUserId($userid)
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.user = :val')
+            ->setParameter('val', $userid)
+            ->getQuery()
+            ->getResult();
     }
 
     /*

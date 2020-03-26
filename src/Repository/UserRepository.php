@@ -47,8 +47,21 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('u.id = :val')
             ->setParameter('val', $id)
             ->getQuery()
-            ->getOneOrNullResult()
-            ;
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Used to return teacher by id
+     *
+     * @return User
+     */
+    public function findTeacher(int $id)
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.id = :val')
+            ->setParameter('val', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     // /**
