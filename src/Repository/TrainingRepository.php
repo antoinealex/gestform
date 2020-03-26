@@ -36,15 +36,19 @@ class TrainingRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?Training
+     /**
+      * @param Int $id
+      * @return mixed
+      * @return Training[] Returns an array of Training objects
+      */
+    public function findOneById($id): ?Training
     {
         return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
+            ->andWhere('t.id = :val')
+            ->setParameter('val', $id)
             ->getQuery()
             ->getOneOrNullResult()
         ;
     }
-    */
+    
 }
