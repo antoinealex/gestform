@@ -18,6 +18,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TrainingController extends AbstractController
 {
+    /* -----------*/
+    /* ----GET----*/
+    /* -----------*/
+
+
     /**
      * @Route("/training", name="training", methods={"GET"})
      * 
@@ -62,7 +67,9 @@ class TrainingController extends AbstractController
     }
 */
 
-
+    /* ------------*/
+    /* ----POST----*/
+    /* ------------*/
 
 
     /**
@@ -115,31 +122,31 @@ class TrainingController extends AbstractController
 
     }
 
-
-
-
-
+    /* -----------*/
+    /* ----PUT----*/
+    /* -----------*/
 
     /**
-     * @Route("/updateTraining", name="update_training", methods={"PUT"})
+     * @Route("/editTraining", name="edit_training", methods={"PUT"})
      */
-    public function updateTraining(Request $request): Response
+    public function editTraining(Request $request): Response
     {
-
+        //Get and decode Data from request body
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        // On prend toutes les données envoyés en PUT
-        $id = $content["id"];
-        $start_training = $content["start_training"];
-        $end_training = $content["end_training"];
-        $max_student = $content["max_student"];
-        $price_per_student = $content["price_per_student"];
-        $training_description = $content["training_description"];
+        //Fetch Data in local variables
+        $TrainingId = $content["id"];
+        $start_training = $content["startTtraining"];
+        $end_training = $content["endTraining"];
+        $max_student = $content["maxStudent"];
+        $price_per_student = $content["pricePerStudent"];
+        $training_description = $content["trainingDescription"];
         $subject = $content["subject"];
 
+
         //Get the event from DBAL
-        $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($id);
+        $Training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($TrainingId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
@@ -148,36 +155,35 @@ class TrainingController extends AbstractController
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
 
+        //Update training object
         try {
-            //$training->setTeacher($teacher);
+            $training->setTeacher($teacher);
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
             $training->setPricePerStudent($price_per_student);
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 1"]));
-            return $response;
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => "error 1"]));
         }
 
-        // On persist l'object = on l'écris dans la BDD
+        //Persistence
         try {
-            $em->persist($training);
+            $em->persist($event);
             $em->flush();
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 2"]));
-            return $response;
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => "error 2"]));
         }
-
-        // On retourne un message de succes
-        $response->setContent(json_encode(["success" => TRUE]));
         return $response;
 
     }
 
 
-
+    /* --------------*/
+    /* ----DELETE----*/
+    /* --------------*/
 
     /**
      * @Route("/deleteTraining", name="delete_training", methods={"DELETE"})
