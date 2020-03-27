@@ -2,20 +2,27 @@
 
 namespace App\Controller;
 
+use DateTime;
+use App\Entity\User;
+use App\Entity\Training;
+use App\Repository\UserRepository;
 use App\Repository\TrainingRepository;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
-use App\Entity\Training;
-use App\Entity\User;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TrainingController extends AbstractController
 {
+    /* -----------*/
+    /* ----GET----*/
+    /* -----------*/
+
+
     /**
      * @Route("/training", name="training", methods={"GET"})
      * 
@@ -34,10 +41,13 @@ class TrainingController extends AbstractController
     }
 
     /**
-     * @Route("/training/{id}", name="training_details", methods={"GET"})
+     * @Route("/trainingById", name="training_id", methods={"GET"})
      */
-    public function getTrainingById(Training $training, SerializerInterface $serializer)
+    public function getTrainingById(Request $request, SerializerInterface $serializer)
     {
+        $trainingId = $request->query->get('id');
+        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+        
         $resultat = $serializer->serialize(
             $training,
             'json',
@@ -57,49 +67,154 @@ class TrainingController extends AbstractController
     }
 */
 
+    /* ------------*/
+    /* ----POST----*/
+    /* ------------*/
+
 
     /**
-     * @Route("/training", name="training_create", methods={"POST"})
+     * @Route("/addTraining", name="add_training", methods={"POST"})
      */
-    public function addTraining(Request $request, EntityManagerInterface $manager, SerializerInterface $serializer)
+    public function addTraining(Request $request): Response
     {
-        $data = $request->getContent();               //Obtenir le contenu de la requete
-        $training = $serializer->deserialize($data,   // On instancie un nouveau cours "training" sans passer par new afin de gagner une ligne. Déserialise ce qu'il y a dans $data. 
-        Training::class,                              // Déserialisation pour former un objet "training".  
-        'json');                                      //Format du contenu à déserialiser = Json
-        //$training est le resultat de la deserialisation de data
-        $manager->persist($training);
-        $manager->flush();
+        // On prend l'id du teacherUser
+        $teacher = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("teacher_id"));
 
-        return new JsonResponse("Le cours a été crée", Response::HTTP_CREATED, [ //Pour une création, on ne retourne pas de résultat, je retourn donc un resultat "null" ainsi que le code statut 201 signifiant que l'objet a bien été crée
-            "location"=>"api/genres/" . $training->getId()      //ce nouvel objet sera joignable à cette adresse
-        ], true);
+        // On prend toutes les données envoyés en POST
+        $start_training =$request->request->get("start_training");
+        $end_training =$request->request->get("end_training");
+        $max_student =$request->request->get("max_student");
+        $price_per_student =$request->request->get("price_per_student");
+        $training_description =$request->request->get("training_description");
+        $subject =$request->request->get("subject");
+
+        // On créé l'objet Training
+        $em = $this->getDoctrine()->getManagerForClass(Training::class);
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+        $training = new Training();
+
+        try {
+            $training->setTeacher($teacher);
+            $training->setStartTraining(new DateTime($start_training));
+            $training->setEndTraining(new DateTime($end_training));
+            $training->setMaxStudent((int)$max_student);
+            $training->setPricePerStudent($price_per_student);
+            $training->setTrainingDescription($training_description);
+            $training->setSubject($subject);
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => "erreur 1"]));
+            return $response;
+        }
+
+        // On persist l'object = on l'écris dans la BDD
+        try {
+            $em->persist($training);
+            $em->flush();
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => "erreur 2"]));
+            return $response;
+        }
+
+        // On retourne un message de succes
+        $response->setContent(json_encode(["success" => TRUE]));
+        return $response;
+
     }
+
+    /* -----------*/
+    /* ----PUT----*/
+    /* -----------*/
 
     /**
-     * @Route("/training/{id}", name="training_update", methods={"PUT"})
+     * @Route("/editTraining", name="edit_training", methods={"PUT"})
      */
-    public function updateNbStudents(Training $training, Request $request, EntityManagerInterface $manager, SerializerInterface $serializer)
+    public function editTraining(Request $request): Response
     {
-        $data=$request->getContent();
-        $resultat = $serializer->deserialize($data, Training::class, 'json', ['object_to_populate'=>$training]);
+        //Get and decode Data from request body
+        $requestParams = $request->getContent();
+        $content = json_decode($requestParams, TRUE);
 
-        $manager->persist($training);
-        $manager->flush();
+        //Fetch Data in local variables
+        $TrainingId = $content["id"];
+        $start_training = $content["startTtraining"];
+        $end_training = $content["endTraining"];
+        $max_student = $content["maxStudent"];
+        $price_per_student = $content["pricePerStudent"];
+        $training_description = $content["trainingDescription"];
+        $subject = $content["subject"];
 
-        return new JsonResponse("Le cours a été modifié", Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
+
+        //Get the event from DBAL
+        $Training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($TrainingId);
+
+        //Get Entity Manager
+        $em = $this->getDoctrine()->getManagerForClass(Training::class);
+
+        //Prepare HTTP Response
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Update training object
+        try {
+            $training->setTeacher($teacher);
+            $training->setStartTraining(new DateTime($start_training));
+            $training->setEndTraining(new DateTime($end_training));
+            $training->setMaxStudent((int)$max_student);
+            $training->setPricePerStudent($price_per_student);
+            $training->setTrainingDescription($training_description);
+            $training->setSubject($subject);
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => "error 1"]));
+        }
+
+        //Persistence
+        try {
+            $em->persist($event);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => "error 2"]));
+        }
+        return $response;
 
     }
+
+
+    /* --------------*/
+    /* ----DELETE----*/
+    /* --------------*/
 
     /**
-     * @Route("/training/{id}", name="training_delete", methods={"DELETE"})
+     * @Route("/deleteTraining", name="delete_training", methods={"DELETE"})
      */
-    public function deleteTraining(Training $training, EntityManagerInterface $manager)
+    public function deleteTraining(Request $request): Response
     {
-        $manager->remove($training);
-        $manager->flush();
+        //Get Entity Manager and prepare response
+        $em = $this->getDoctrine()->getManagerForClass(Training::class);
 
-        return new JsonResponse("Le cours a été supprimé", Response::HTTP_OK, []); //On retire le "true" puisqu'on envoi rien qui est en json
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Get training object to delete
+        $trainingId = $request->query->get("id");
+
+        try {
+            $training = $em->getRepository(Training::class)->findOneByID($trainingId);
+        } catch (NonUniqueResultException $e) {
+            $response->setContent(json_encode(["success" => "error 1"]));
+        }
+
+        //Remove object
+        try {
+            $em->remove($training);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => "error 2"]));
+        }
+        return $response;
     }
+
 
 }

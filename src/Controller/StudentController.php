@@ -3,17 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\Comments;
 use App\Entity\CalendarEvent;
+use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\CalendarEventRepository;
 
-
-
-
+/**
+ * @Route("/student", name="student_")
+ */
 
 class StudentController extends AbstractController
 {
@@ -22,15 +25,33 @@ class StudentController extends AbstractController
 	/* -----------*/
 
 	/**
-	 * @Route("/student", name="student", methods={"GET"})
+	 * @Route("/userstudent", name="userstudent", methods={"GET"})
+	 * @return Response
 	 */
-	public function getUserStudent() : Response
+	public function getUserStudent(Request $request) : Response
 	{
+		$userRole = $request->query->get('roles'); //récupère la requête
+		$students =  $this->getDoctrine()->getRepository(User::class)->findOneById($userRole);
+        //Serialization
+        $responseContent = [];
+        foreach($students as $student){
+            $responseContent[$student->getId()] = [
+                "user" => $student->getuser()->getId(),
+                "role" => $student->getRoles()                
+            ];
+            if ($student->getuserInvited())  {
+                $responseContent[$student->getId()]["invitation"] = $student->getuserInvited()->getId();
+            }
+        }
 
+        $response = new Response(json_encode($responseContent));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+       
 	}
 
 	/**
-	 * @Route("/student", name="allstudent", methods={"GET"})
+	 * @Route("/allstudent", name="allstudent", methods={"GET"})
 	 */
 	public function getAllStudent(UserRepository $allStudent, SerializerInterface $serializer) : Response
 	{
@@ -46,11 +67,25 @@ class StudentController extends AbstractController
 	}
 
 	/**
-	 * @Route("/student", name="studentcalendar", methods={"GET"})
+	 * @Route("/studcalendar", name="studcalendar", methods={"GET"})
 	 */
-	public function getStudentCalendar  () : Response
+	public function getStudentCalendar  (Request $request) : Response
 	{
-
+		$eventId = $request->query->get('id');
+        $studentcalendar =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        //Serialization
+        $responseContent = [
+            "id" => $studentcalendar->getId(),
+			"user" => $studentcalendar->getuser()->getId(),
+			//"role" => $studentcalendar->getRoles(),
+            "startEvent" => $studentcalendar->getStartEvent(),
+            "endEvent" => $studentcalendar->getEndEvent(),
+            "description" => $studentcalendar->getEventDescription()
+        ];
+     
+        $response = new Response(json_encode($responseContent));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
 	}
 	/* -----------*/
 	/* ----POST---*/
@@ -77,19 +112,7 @@ class StudentController extends AbstractController
 	}*/
 
 	/**
-	 * @Route("/comment", name="newcomment", methods={"POST"})
+	 * @Route("/comments", name="newcomment", methods={"POST"})
 	 */
-	public function newComment(Request $request, SerializerInterface $serializer) : Response
-	{
-		// récupérer les composants d'un commentaire
-		$result = $request->Comments();
-
-		//instancier un nouveau commentaire
-		$comment = $serializer->deserialize($result,
-        Comments::class,                               
-		'json');  
-		
-		return new JsonResponse($comment);
-	}
-
+	
 }
