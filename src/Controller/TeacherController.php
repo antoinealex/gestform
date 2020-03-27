@@ -8,14 +8,10 @@ use App\Repository\CalendarEventRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\Node\Stmt\Return_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Role\Role;
-use Symfony\Component\Serializer\SerializerInterface;
+
 
 class TeacherController extends AbstractController
 {
@@ -27,7 +23,7 @@ class TeacherController extends AbstractController
     private $calendareventrepository;
 
 
-    public function __construct(UserRepository $userrepository, CalendarEventRepository $calendareventrepository, EntityManagerInterface $em, SerializerInterface $serializer)
+    public function __construct(UserRepository $userrepository, CalendarEventRepository $calendareventrepository, EntityManagerInterface $em)
     {
         $this->userrepository = $userrepository;
         $this->calendareventrepository = $calendareventrepository;
@@ -37,6 +33,7 @@ class TeacherController extends AbstractController
     /**
      * @Route("/teacher_details", name= "teacher", methods={"GET"})
      * @return Response
+     * @param Request
      */
     public function GetUserTeacher(Request $request): Response
     {
@@ -127,14 +124,7 @@ class TeacherController extends AbstractController
         return $response;
     }
 
-    /**
-     * Undocumented function
-     *
-     * @return void
-     */
-    public function NewAvailabilities()
-    {
-    }
+
 
     /**
      * Undocumented function
@@ -146,12 +136,46 @@ class TeacherController extends AbstractController
     }
 
     /**
-     * Undocumented function
-     *
-     * @return void
+     * Used to update teacher
+     * 
+     *@Route("/teacher_update", name= "UpdateTeacher", methods={"PUT"})
+     * @param Request $request
+     * @return Response
      */
-    public function UpdateTeacher()
+    public function UpdateTeacher(Request $request)
     {
+        $teacherParams = $request->getContent();
+        $content = json_decode($teacherParams, TRUE);
+
+        $teacher = $this->userrepository->findTeacher($content["id"]);
+
+        $email = $content["email"];
+        $role = $content["role"];
+        $password = $content["password"];
+        $lastname = $content["lastname"];
+        $firstname = $content["firstname"];
+        $phone = $content["phone"];
+        $address = $content["address"];
+        $postcode = $content["postcode"];
+        $city = $content["city"];
+
+        $teacher->setEmail($email)
+            ->setRoles([$role])
+            ->setPassword($password)
+            ->setLastname($lastname)
+            ->setFirstname($firstname)
+            ->setPhone($phone)
+            ->setAddress($address)
+            ->setPostcode($postcode)
+            ->setCity($city);
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($teacher);
+        $em->flush();
+
+        $response = new Response(json_encode('Bien modifié avec succès!'));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
     }
 
     /**

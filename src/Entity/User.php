@@ -78,7 +78,7 @@ class User implements UserInterface
     private $city;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CalendarEvent", mappedBy="idUser", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\CalendarEvent", mappedBy="idUser", orphanRemoval=false)
      */
     private $ownCalendarEvents;
 
