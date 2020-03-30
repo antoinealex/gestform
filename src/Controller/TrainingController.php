@@ -176,11 +176,7 @@ class TrainingController extends AbstractController
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
-<<<<<<< HEAD
             $response->setContent(json_encode(["success" => FALSE]));
-=======
-            $response->setContent(json_encode(["success" => "$e"]));
->>>>>>> 600d418b1857503907582428ee741033c83ec948
         }
         return $response;
 
