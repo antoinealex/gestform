@@ -127,16 +127,18 @@ class TrainingController extends AbstractController
     /* -----------*/
 
     /**
-     * @Route("/editTraining", name="edit_training", methods={"PUT"})
+     * @Route("/updateTraining", name="update_training", methods={"PUT"})
      */
-    public function editTraining(Request $request): Response
+    public function updateTraining(Request $request): Response
     {
         //Get and decode Data from request body
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
+        $trainingId = $request->query->get('id');
+
         //Fetch Data in local variables
-        $TrainingId = $content["id"];
+        $teacherId = $content["teacher_id"];
         $start_training = $content["startTtraining"];
         $end_training = $content["endTraining"];
         $max_student = $content["maxStudent"];
@@ -146,7 +148,7 @@ class TrainingController extends AbstractController
 
 
         //Get the event from DBAL
-        $Training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($TrainingId);
+        $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($trainingId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
@@ -157,7 +159,7 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
-            $training->setTeacher($teacher);
+            $training->setTeacher($teacherId);
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
@@ -170,11 +172,15 @@ class TrainingController extends AbstractController
 
         //Persistence
         try {
-            $em->persist($event);
+            $em->persist($training);
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
+<<<<<<< HEAD
             $response->setContent(json_encode(["success" => FALSE]));
+=======
+            $response->setContent(json_encode(["success" => "$e"]));
+>>>>>>> 600d418b1857503907582428ee741033c83ec948
         }
         return $response;
 
