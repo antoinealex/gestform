@@ -103,7 +103,7 @@ class TrainingController extends AbstractController
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
         } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
@@ -112,7 +112,7 @@ class TrainingController extends AbstractController
             $em->persist($training);
             $em->flush();
         } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
@@ -165,7 +165,7 @@ class TrainingController extends AbstractController
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
         } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => "error 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
 
         //Persistence
@@ -174,7 +174,7 @@ class TrainingController extends AbstractController
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => "error 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
 
@@ -202,7 +202,7 @@ class TrainingController extends AbstractController
         try {
             $training = $em->getRepository(Training::class)->findOneByID($trainingId);
         } catch (NonUniqueResultException $e) {
-            $response->setContent(json_encode(["success" => "error 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
 
         //Remove object
@@ -211,7 +211,7 @@ class TrainingController extends AbstractController
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => "error 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
     }
