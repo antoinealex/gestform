@@ -41,9 +41,15 @@ class TeacherController extends AbstractController
         $teacher = $this->userrepository->findTeacher($id);
         $teacherdatas = [];
         $teacherdatas[$teacher->getId()] = [
-            'firstname' => $teacher->getFirstname(),
+            'email' => $teacher->getEmail(),
+            'role' => $teacher->getRoles(),
+            'password' => $teacher->getPassword(),
             'lastname' => $teacher->getLastname(),
-            'role' => $teacher->getRoles()
+            'firstname' => $teacher->getFirstname(),
+            'phone' => $teacher->getPhone(),
+            'address' => $teacher->getAddress(),
+            'postcode' => $teacher->getPostcode(),
+            'city' => $teacher->getCity()
         ];
         $response = new Response(json_encode($teacherdatas));
         $response->headers->set('Content-Type', 'application/json');
@@ -85,8 +91,10 @@ class TeacherController extends AbstractController
         foreach ($teachercalendar as $value) {
             $teacherdatas[$value->getId()] = [
                 'user' => $value->getuser()->getId(),
+                'userinvited' => $value->getuserInvited()->getId(),
                 'startevent' => $value->getStartEvent(),
                 'endevent' => $value->getEndEvent(),
+                'status' => $value->getStatus(),
                 'eventdescription' => $value->getEventDescription()
             ];
         }
@@ -119,7 +127,7 @@ class TeacherController extends AbstractController
         $em->persist($newteacher);
         $em->flush();
 
-        $response = new Response(json_encode('Bien crée avec succès!'));
+        $response = new Response(json_encode("Bien cree avec succes!"));
         $response->headers->set('Content-Type', 'application/json');
         return $response;
     }

@@ -19,28 +19,27 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class UserController extends AbstractController
 {
 
-// *******************************************************************************************************
-// *****************************************   GET   *****************************************************
-// *******************************************************************************************************
+    // *******************************************************************************************************
+    // *****************************************   GET   *****************************************************
+    // *******************************************************************************************************
 
     /**
      * @Route("/users", name="api_users_list", methods={"GET"})
      */
     public function getAllUser(): Response
     {
-        $users=$this->getDoctrine()->getRepository(User::class)->findAll();
+        $users = $this->getDoctrine()->getRepository(User::class)->findAll();
 
         $responseContent = [];
-        foreach($users as $user)
-        {
+        foreach ($users as $user) {
             $responseContent[$user->getId()] = [
-                'email'=>$user->getEmail(),
-                'roles'=>$user->getRoles(),
-                'lastname'=>$user->getLastname(),
-                'firstname'=>$user->getFirstname(),
-                'phone'=>$user->getPhone(),
-                'address'=>$user->getAddress(),
-                'postcode'=>$user->getCity()
+                'email' => $user->getEmail(),
+                'roles' => $user->getRoles(),
+                'lastname' => $user->getLastname(),
+                'firstname' => $user->getFirstname(),
+                'phone' => $user->getPhone(),
+                'address' => $user->getAddress(),
+                'postcode' => $user->getCity()
             ];
         }
 
@@ -55,27 +54,26 @@ class UserController extends AbstractController
     public function getGetUserByID(Request $request): Response
     {
         $userId = $request->query->get('id');
-        $user=$this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
 
         $responseContent = [
-            'email'=>$user->getEmail(),
-            'roles'=>$user->getRoles(),
-            'lastname'=>$user->getLastname(),
-            'firstname'=>$user->getFirstname(),
-            'phone'=>$user->getPhone(),
-            'address'=>$user->getAddress(),
-            'postcode'=>$user->getCity()
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+            'lastname' => $user->getLastname(),
+            'firstname' => $user->getFirstname(),
+            'phone' => $user->getPhone(),
+            'address' => $user->getAddress(),
+            'postcode' => $user->getCity()
         ];
 
         $response = new Response(json_encode($responseContent));
         $response->headers->set('Content-Type', 'application/json');
         return $response;
-
     }
 
-// *******************************************************************************************************
-// *****************************************   POST   ****************************************************
-// *******************************************************************************************************
+    // *******************************************************************************************************
+    // *****************************************   POST   ****************************************************
+    // *******************************************************************************************************
 
     /**
      * @Route("/user", name="api_user_createUser", methods={"POST"})
@@ -100,16 +98,15 @@ class UserController extends AbstractController
         $user = new User();
 
         try {
-            $user   ->setEmail($email)
-                    ->setRoles($roles)
-                    ->setPassword($password)
-                    ->setLastname($lastname)
-                    ->setFirstname($firstname)
-                    ->setPhone($phone)
-                    ->setAddress($address)
-                    ->setPostcode($postcode)
-                    ->setCity($city);
-
+            $user->setEmail($email)
+                ->setRoles([$roles])
+                ->setPassword($password)
+                ->setLastname($lastname)
+                ->setFirstname($firstname)
+                ->setPhone($phone)
+                ->setAddress($address)
+                ->setPostcode($postcode)
+                ->setCity($city);
         } catch (Exception $e) {
             $response->setContent(json_encode(["error" => FALSE]));
             return $response;
@@ -129,9 +126,9 @@ class UserController extends AbstractController
         return $response;
     }
 
-// *******************************************************************************************************
-// *****************************************   PUT   *****************************************************
-// *******************************************************************************************************
+    // *******************************************************************************************************
+    // *****************************************   PUT   *****************************************************
+    // *******************************************************************************************************
 
     /**
      * @Route("/users/{id}", name="api_user_update", methods={"PUT"})
@@ -143,74 +140,74 @@ class UserController extends AbstractController
         // $nationalite = $repoNation->find($dataTab['nationalite']['id']);
         $serializer->deserialize($data, User::class, 'json', ['object_to_populate' => $user]);
         // $user->setLastname($data[]);
- 
+
         $manager->persist($user);
         $manager->flush();
- 
+
         return new JsonResponse("l'user a bien été modifié", Response::HTTP_OK, [], true);
     }
 
-    // /**
-    //  * @Route("/user", name="update_user", methods={"PUT"})
-    //  * @param Request $request
-    //  * @return Response
-    //  * @throws \Doctrine\ORM\NonUniqueResultException
-    //  */
-    // public function updateUser(Request $request): Response
-    // {
-    //     //On récupère les données dans le body de la requête
-    //     $requestParams = $request->getContent();
-    //     $content = json_decode($requestParams, TRUE);
+    /**
+     * @Route("/user", name="update_user", methods={"PUT"})
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function updateUser(Request $request): Response
+    {
+        //On récupère les données dans le body de la requête
+        $requestParams = $request->getContent();
+        $content = json_decode($requestParams, TRUE);
 
-    //     //On stocke les données temporairement dans des variables
-    //     $userId = $content["id"];
-    //     $email  = $content["email"];
-    //     $roles = $content["roles"];
-    //     $password = $content["password"];
-    //     $lastname = $content["lastname"];
-    //     $firstname = $content["firstname"];
-    //     $phone = $content["phone"];
-    //     $address = $content["address"];
-    //     $postcode = $content["postcode"];
-    //     $city = $content["city"];
+        //On stocke les données temporairement dans des variables
+        $userId = $content["id"];
+        $email  = $content["email"];
+        $roles = $content["roles"];
+        $password = $content["password"];
+        $lastname = $content["lastname"];
+        $firstname = $content["firstname"];
+        $phone = $content["phone"];
+        $address = $content["address"];
+        $postcode = $content["postcode"];
+        $city = $content["city"];
 
-    //     // On récupère l'utilisateur qui correspond a l'id donné dans la requête
-    //     $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
-    //     $em = $this->getDoctrine()->getManagerForClass(User::class);
+        // On récupère l'utilisateur qui correspond a l'id donné dans la requête
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
+        $em = $this->getDoctrine()->getManagerForClass(User::class);
 
-    //     //On prèpare la réponse
-    //     $response = new Response();
-    //     $response->headers->set('Content-Type', 'application/json');
+        //On prèpare la réponse
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
 
-    //     // On modifie les données de de l'utilisateur
-    //     try {
-    //         $user   ->setEmail($email)
-    //                 ->setRoles($roles)
-    //                 ->setPassword($password)
-    //                 ->setLastname($lastname)
-    //                 ->setFirstname($firstname)
-    //                 ->setPhone($phone)
-    //                 ->setAddress($address)
-    //                 ->setPostcode($postcode)
-    //                 ->setCity($city);
-    //     } catch (Exception $e) {
-    //         $response->setContent(json_encode(["success" => FALSE]));
-    //     }
+        // On modifie les données de de l'utilisateur
+        try {
+            $user->setEmail($email)
+                ->setRoles([$roles])
+                ->setPassword($password)
+                ->setLastname($lastname)
+                ->setFirstname($firstname)
+                ->setPhone($phone)
+                ->setAddress($address)
+                ->setPostcode($postcode)
+                ->setCity($city);
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
 
-    //     // On persiste l'objet modifié
-    //     try {
-    //         $em->persist($user);
-    //         $em->flush();
-    //         $response->setContent(json_encode(["success" => TRUE]));
-    //     } catch (Exception $e) {
-    //         $response->setContent(json_encode(["success" => FALSE]));
-    //     }
-    //     return $response;
-    // }
+        // On persiste l'objet modifié
+        try {
+            $em->persist($user);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+        return $response;
+    }
 
-// *******************************************************************************************************
-// *****************************************   DELETE   **************************************************
-// *******************************************************************************************************
+    // *******************************************************************************************************
+    // *****************************************   DELETE   **************************************************
+    // *******************************************************************************************************
 
     /**
      * @Route("/user", name="api_user_deleteUser", methods={"DELETE"})
@@ -221,11 +218,11 @@ class UserController extends AbstractController
         $em = $this->getDoctrine()->getManagerForClass(User::class);
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
-        
+
         // On récupère l'objet à supprimer dans la base de données
-        $user=new User();
+        $user = new User();
         try {
-            $user=$em->getRepository(User::class)->findOneByID($request->request->get("id"));
+            $user = $em->getRepository(User::class)->findOneByID($request->request->get("id"));
         } catch (NonUniqueResultException $e) {
             $response->setContent(json_encode(["error" => FALSE]));
         }
