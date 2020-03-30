@@ -43,13 +43,13 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listUserFull","listUserSimple"})
+     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listUserFull","listUserSimple"})
+     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails"})
      */
     private $firstname;
 
@@ -78,7 +78,7 @@ class User implements UserInterface
     private $city;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CalendarEvent", mappedBy="idUser", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\CalendarEvent", mappedBy="idUser", orphanRemoval=false)
      */
     private $ownCalendarEvents;
 

@@ -18,6 +18,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TrainingController extends AbstractController
 {
+    /* -----------*/
+    /* ----GET----*/
+    /* -----------*/
+
+
     /**
      * @Route("/training", name="training", methods={"GET"})
      * 
@@ -62,7 +67,9 @@ class TrainingController extends AbstractController
     }
 */
 
-
+    /* ------------*/
+    /* ----POST----*/
+    /* ------------*/
 
 
     /**
@@ -96,7 +103,7 @@ class TrainingController extends AbstractController
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
         } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
@@ -105,7 +112,7 @@ class TrainingController extends AbstractController
             $em->persist($training);
             $em->flush();
         } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
@@ -115,71 +122,101 @@ class TrainingController extends AbstractController
 
     }
 
-
-
-
-
+    /* -----------*/
+    /* ----PUT----*/
+    /* -----------*/
 
     /**
      * @Route("/updateTraining", name="update_training", methods={"PUT"})
      */
     public function updateTraining(Request $request): Response
     {
-
+        //Get and decode Data from request body
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        // On prend toutes les données envoyés en POST
-        $start_training =$request->request->get("start_training");
-        $end_training =$request->request->get("end_training");
-        $max_student =$request->request->get("max_student");
-        $price_per_student =$request->request->get("price_per_student");
-        $training_description =$request->request->get("training_description");
-        $subject =$request->request->get("subject");
+        $trainingId = $request->query->get('id');
 
-        // On créé l'objet Training
+        //Fetch Data in local variables
+        $teacherId = $content["teacher_id"];
+        $start_training = $content["startTtraining"];
+        $end_training = $content["endTraining"];
+        $max_student = $content["maxStudent"];
+        $price_per_student = $content["pricePerStudent"];
+        $training_description = $content["trainingDescription"];
+        $subject = $content["subject"];
+
+
+        //Get the event from DBAL
+        $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($trainingId);
+
+        //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
+
+        //Prepare HTTP Response
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
-        $training = new Training();
 
+        //Update training object
         try {
-            $training->setTeacher($teacher);
+            $training->setTeacher($teacherId);
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
             $training->setPricePerStudent($price_per_student);
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 1"]));
-            return $response;
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
         }
 
-        // On persist l'object = on l'écris dans la BDD
+        //Persistence
         try {
             $em->persist($training);
             $em->flush();
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 2"]));
-            return $response;
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
         }
-
-        // On retourne un message de succes
-        $response->setContent(json_encode(["success" => TRUE]));
         return $response;
 
     }
 
-    /**
-     * @Route("/deleteTraining/{id}", name="training_delete", methods={"DELETE"})
-     */
-    public function deleteTraining(Training $training, EntityManagerInterface $manager)
-    {
-        $manager->remove($training);
-        $manager->flush();
 
-        return new JsonResponse("Le cours a été supprimé", Response::HTTP_OK, []); //On retire le "true" puisqu'on envoi rien qui est en json
+    /* --------------*/
+    /* ----DELETE----*/
+    /* --------------*/
+
+    /**
+     * @Route("/deleteTraining", name="delete_training", methods={"DELETE"})
+     */
+    public function deleteTraining(Request $request): Response
+    {
+        //Get Entity Manager and prepare response
+        $em = $this->getDoctrine()->getManagerForClass(Training::class);
+
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Get training object to delete
+        $trainingId = $request->query->get("id");
+
+        try {
+            $training = $em->getRepository(Training::class)->findOneByID($trainingId);
+        } catch (NonUniqueResultException $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+
+        //Remove object
+        try {
+            $em->remove($training);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+        return $response;
     }
+
 
 }
