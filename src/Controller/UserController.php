@@ -111,7 +111,7 @@ class UserController extends AbstractController
                     ->setCity($city);
 
         } catch (Exception $e) {
-            $response->setContent(json_encode(["error" => "erreur 1: Une des données ne corespond pas au format attendu"]));
+            $response->setContent(json_encode(["error" => FALSE]));
             return $response;
         }
 
@@ -120,12 +120,12 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
         } catch (Exception $e) {
-            $response->setContent(json_encode(["error" => "erreur 2 = Utilisateur non inscrit dans la BDD"]));
+            $response->setContent(json_encode(["error" => FALSE]));
             return $response;
         }
 
         // On retourne un message de succes
-        $response->setContent(json_encode(["success" => "L'utilisateur a bien été créé"]));
+        $response->setContent(json_encode(["success" => TRUE]));
         return $response;
     }
 
@@ -139,7 +139,7 @@ class UserController extends AbstractController
     public function edit(User $user, Request $request, EntityManagerInterface $manager, SerializerInterface $serializer)
     {
         $data = $request->getContent();
-        $dataTab = $serializer->decode($data, 'json');
+        //$dataTab = $serializer->decode($data, 'json');
         // $nationalite = $repoNation->find($dataTab['nationalite']['id']);
         $serializer->deserialize($data, User::class, 'json', ['object_to_populate' => $user]);
         // $user->setLastname($data[]);
@@ -163,8 +163,8 @@ class UserController extends AbstractController
     //     $content = json_decode($requestParams, TRUE);
 
     //     //On stocke les données temporairement dans des variables
-    //     $userId = $content["id "];
-    //     $email  = $content["email "];
+    //     $userId = $content["id"];
+    //     $email  = $content["email"];
     //     $roles = $content["roles"];
     //     $password = $content["password"];
     //     $lastname = $content["lastname"];
@@ -223,12 +223,11 @@ class UserController extends AbstractController
         $response->headers->set('Content-Type', 'application/json');
         
         // On récupère l'objet à supprimer dans la base de données
-
         $user=new User();
         try {
             $user=$em->getRepository(User::class)->findOneByID($request->request->get("id"));
         } catch (NonUniqueResultException $e) {
-            $response->setContent(json_encode(["error" => "erreur 1: Une des données ne corespond pas au format attendu"]));
+            $response->setContent(json_encode(["error" => FALSE]));
         }
 
         //On supprime l'objet User
@@ -237,7 +236,7 @@ class UserController extends AbstractController
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (Exception $e) {
-            $response->setContent(json_encode(["error" => "erreur 2 = Utilisateur n'a pas pu être supprimé de la BDD"]));
+            $response->setContent(json_encode(["error" => FALSE]));
         }
         return $response;
     }
