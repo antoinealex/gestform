@@ -127,9 +127,8 @@ class TrainingController extends AbstractController
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        $trainingId = $request->query->get('id');
-
         //Fetch Data in local variables
+        $trainingId = $content["id"];
         $teacherId = $content["teacher_id"];
         $start_training = $content["startTtraining"];
         $end_training = $content["endTraining"];
@@ -151,7 +150,7 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
-            $training->setTeacher($teacherId);
+            $training->setTeacher($this->getDoctrine()->getRepository(Training::class)->findOneById($teacherId));
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
