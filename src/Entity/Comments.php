@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CommentsRepository")
@@ -18,22 +20,26 @@ class Comments
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"listComments"})
      */
     private $titleComment;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     * @Groups({"listComments"})
      */
     private $bodyComment;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups({"listComments"})
      */
     private $dateComment;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="comments")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"listComments"})
      */
     private $user;
 

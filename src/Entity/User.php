@@ -43,13 +43,13 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails"})
+     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails", "listComments"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails"})
+     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails", "listComments"})
      */
     private $firstname;
 
