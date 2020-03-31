@@ -47,7 +47,7 @@ class TrainingController extends AbstractController
     {
         $trainingId = $request->query->get('id');
         $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
-        
+
         $resultat = $serializer->serialize(
             $training,
             'json',
@@ -58,7 +58,7 @@ class TrainingController extends AbstractController
         return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
     }
 
-/*
+    /*
     public function getStudentTraining()
     {
 
@@ -79,12 +79,12 @@ class TrainingController extends AbstractController
         $teacher = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("teacher_id"));
 
         // On prend toutes les données envoyés en POST
-        $start_training =$request->request->get("start_training");
-        $end_training =$request->request->get("end_training");
-        $max_student =$request->request->get("max_student");
-        $price_per_student =$request->request->get("price_per_student");
-        $training_description =$request->request->get("training_description");
-        $subject =$request->request->get("subject");
+        $start_training = $request->request->get("start_training");
+        $end_training = $request->request->get("end_training");
+        $max_student = $request->request->get("max_student");
+        $price_per_student = $request->request->get("price_per_student");
+        $training_description = $request->request->get("training_description");
+        $subject = $request->request->get("subject");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
@@ -96,7 +96,7 @@ class TrainingController extends AbstractController
             $training->setTeacher($teacher);
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
-            $training->setMaxStudent((int)$max_student);
+            $training->setMaxStudent((int) $max_student);
             $training->setPricePerStudent($price_per_student);
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
@@ -125,6 +125,8 @@ class TrainingController extends AbstractController
 
     /**
      * @Route("/updateTraining", name="update_training", methods={"PUT"})
+     * @param Request $request
+     * @return Response
      */
     public function updateTraining(Request $request): Response
     {
@@ -132,9 +134,10 @@ class TrainingController extends AbstractController
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        $trainingId = $request->query->get('id');
+        //$trainingId = $request->query->get('id');
 
         //Fetch Data in local variables
+        $trainingId = $content["id"];
         $teacherId = $content["teacher_id"];
         $start_training = $content["startTtraining"];
         $end_training = $content["endTraining"];
@@ -155,13 +158,13 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
-            $training->setTeacher($teacherId);
-            $training->setStartTraining(new DateTime($start_training));
-            $training->setEndTraining(new DateTime($end_training));
-            $training->setMaxStudent((int)$max_student);
-            $training->setPricePerStudent($price_per_student);
-            $training->setTrainingDescription($training_description);
-            $training->setSubject($subject);
+            $training->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId))
+                ->setStartTraining(new DateTime($start_training))
+                ->setEndTraining(new DateTime($end_training))
+                ->setMaxStudent((int) $max_student)
+                ->setPricePerStudent($price_per_student)
+                ->setTrainingDescription($training_description)
+                ->setSubject($subject);
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
@@ -175,7 +178,6 @@ class TrainingController extends AbstractController
             $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
-
     }
 
     /* --------------*/
@@ -212,5 +214,4 @@ class TrainingController extends AbstractController
         }
         return $response;
     }
-
 }

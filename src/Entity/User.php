@@ -98,7 +98,7 @@ class User implements UserInterface
      */
     private $comments;
 
-    static UserPasswordEncoderInterface $passwordEncoder;
+    //static UserPasswordEncoderInterface $passwordEncoder;
 
     public function __construct()
     {
