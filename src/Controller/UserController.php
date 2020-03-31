@@ -15,9 +15,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class UserController extends AbstractController
 {
+
+    private $passwordEncoder;
+
+    public function __construct(UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->passwordEncoder=$passwordEncoder;
+    }
 
     // *******************************************************************************************************
     // *****************************************   GET   *****************************************************
@@ -101,7 +109,7 @@ class UserController extends AbstractController
         try {
             $user   ->setEmail($email)
                     ->setRoles([$roles])
-                    ->setPassword($password)
+                    ->setPassword($this->passwordEncoder->encodePassword($user,$password))
                     ->setLastname($lastname)
                     ->setFirstname($firstname)
                     ->setPhone($phone)
@@ -167,7 +175,7 @@ class UserController extends AbstractController
         try {
             $user   ->setEmail($email)
                     ->setRoles([$roles])
-                    ->setPassword($password)
+                    ->setPassword($this->passwordEncoder->encodePassword($user,$password))
                     ->setLastname($lastname)
                     ->setFirstname($firstname)
                     ->setPhone($phone)
