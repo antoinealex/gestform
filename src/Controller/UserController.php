@@ -111,7 +111,7 @@ class UserController extends AbstractController
                     ->setCity($city);
 
         } catch (Exception $e) {
-            $response->setContent(json_encode(["error" => FALSE]));
+            $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
@@ -120,7 +120,7 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
         } catch (Exception $e) {
-            $response->setContent(json_encode(["error" => FALSE]));
+            $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
@@ -227,7 +227,7 @@ class UserController extends AbstractController
         try {
             $user=$em->getRepository(User::class)->findOneByID($request->request->get("id"));
         } catch (NonUniqueResultException $e) {
-            $response->setContent(json_encode(["error" => FALSE]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
 
         //On supprime l'objet User
@@ -236,7 +236,7 @@ class UserController extends AbstractController
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (Exception $e) {
-            $response->setContent(json_encode(["error" => FALSE]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
     }
