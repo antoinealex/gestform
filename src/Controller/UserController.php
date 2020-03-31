@@ -33,13 +33,13 @@ class UserController extends AbstractController
         $responseContent = [];
         foreach ($users as $user) {
             $responseContent[$user->getId()] = [
-                'email' => $user->getEmail(),
-                'roles' => $user->getRoles(),
-                'lastname' => $user->getLastname(),
+                'email'     => $user->getEmail(),
+                'roles'     => $user->getRoles(),
+                'lastname'  => $user->getLastname(),
                 'firstname' => $user->getFirstname(),
-                'phone' => $user->getPhone(),
-                'address' => $user->getAddress(),
-                'postcode' => $user->getCity()
+                'phone'     => $user->getPhone(),
+                'address'   => $user->getAddress(),
+                'postcode'  => $user->getCity()
             ];
         }
 
@@ -57,13 +57,14 @@ class UserController extends AbstractController
         $user = $this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
 
         $responseContent = [
-            'email' => $user->getEmail(),
-            'roles' => $user->getRoles(),
-            'lastname' => $user->getLastname(),
+            'email'     => $user->getEmail(),
+            'roles'     => $user->getRoles(),
+            'lastname'  => $user->getLastname(),
             'firstname' => $user->getFirstname(),
-            'phone' => $user->getPhone(),
-            'address' => $user->getAddress(),
-            'postcode' => $user->getCity()
+            'phone'     => $user->getPhone(),
+            'address'   => $user->getAddress(),
+            'postcode'  => $user->getPostcode(),
+            'city'      => $user->getCity()
         ];
 
         $response = new Response(json_encode($responseContent));
@@ -81,15 +82,15 @@ class UserController extends AbstractController
     public function createUser(Request $request): Response
     {
         // On prend toutes les données envoyés en POST
-        $email = $request->request->get("email");
-        $roles = $request->request->get("roles");
-        $password = $request->request->get("password");
-        $lastname = $request->request->get("lastname");
-        $firstname = $request->request->get("firstname");
-        $phone = $request->request->get("phone");
-        $address = $request->request->get("address");
-        $postcode = $request->request->get("postcode");
-        $city = $request->request->get("city");
+        $email =        $request->request->get("email");
+        $roles =        $request->request->get("roles");
+        $password =     $request->request->get("password");
+        $lastname =     $request->request->get("lastname");
+        $firstname =    $request->request->get("firstname");
+        $phone =        $request->request->get("phone");
+        $address =      $request->request->get("address");
+        $postcode =     $request->request->get("postcode");
+        $city =         $request->request->get("city");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(User::class);
@@ -98,15 +99,15 @@ class UserController extends AbstractController
         $user = new User();
 
         try {
-            $user->setEmail($email)
-                ->setRoles([$roles])
-                ->setPassword($password)
-                ->setLastname($lastname)
-                ->setFirstname($firstname)
-                ->setPhone($phone)
-                ->setAddress($address)
-                ->setPostcode($postcode)
-                ->setCity($city);
+            $user   ->setEmail($email)
+                    ->setRoles([$roles])
+                    ->setPassword($password)
+                    ->setLastname($lastname)
+                    ->setFirstname($firstname)
+                    ->setPhone($phone)
+                    ->setAddress($address)
+                    ->setPostcode($postcode)
+                    ->setCity($city);
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
@@ -131,23 +132,6 @@ class UserController extends AbstractController
     // *******************************************************************************************************
 
     /**
-     * @Route("/users/{id}", name="api_user_update", methods={"PUT"})
-     */
-    public function edit(User $user, Request $request, EntityManagerInterface $manager, SerializerInterface $serializer)
-    {
-        $data = $request->getContent();
-        //$dataTab = $serializer->decode($data, 'json');
-        // $nationalite = $repoNation->find($dataTab['nationalite']['id']);
-        $serializer->deserialize($data, User::class, 'json', ['object_to_populate' => $user]);
-        // $user->setLastname($data[]);
-
-        $manager->persist($user);
-        $manager->flush();
-
-        return new JsonResponse("l'user a bien été modifié", Response::HTTP_OK, [], true);
-    }
-
-    /**
      * @Route("/user", name="update_user", methods={"PUT"})
      * @param Request $request
      * @return Response
@@ -160,16 +144,16 @@ class UserController extends AbstractController
         $content = json_decode($requestParams, TRUE);
 
         //On stocke les données temporairement dans des variables
-        $userId = $content["id"];
-        $email  = $content["email"];
-        $roles = $content["roles"];
-        $password = $content["password"];
-        $lastname = $content["lastname"];
-        $firstname = $content["firstname"];
-        $phone = $content["phone"];
-        $address = $content["address"];
-        $postcode = $content["postcode"];
-        $city = $content["city"];
+        $userId =       $content["id"];
+        $email  =       $content["email"];
+        $roles =        $content["roles"];
+        $password =     $content["password"];
+        $lastname =     $content["lastname"];
+        $firstname =    $content["firstname"];
+        $phone =        $content["phone"];
+        $address =      $content["address"];
+        $postcode =     $content["postcode"];
+        $city =         $content["city"];
 
         // On récupère l'utilisateur qui correspond a l'id donné dans la requête
         $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
@@ -181,15 +165,15 @@ class UserController extends AbstractController
 
         // On modifie les données de de l'utilisateur
         try {
-            $user->setEmail($email)
-                ->setRoles([$roles])
-                ->setPassword($password)
-                ->setLastname($lastname)
-                ->setFirstname($firstname)
-                ->setPhone($phone)
-                ->setAddress($address)
-                ->setPostcode($postcode)
-                ->setCity($city);
+            $user   ->setEmail($email)
+                    ->setRoles([$roles])
+                    ->setPassword($password)
+                    ->setLastname($lastname)
+                    ->setFirstname($firstname)
+                    ->setPhone($phone)
+                    ->setAddress($address)
+                    ->setPostcode($postcode)
+                    ->setCity($city);
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
