@@ -23,7 +23,6 @@ class TrainingController extends AbstractController
     /* ----GET----*/
     /* -----------*/
 
-
     /**
      * @Route("/training", name="training", methods={"GET"})
      * 
@@ -58,6 +57,13 @@ class TrainingController extends AbstractController
         );
         return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
     }
+
+/*
+    public function getStudentTraining()
+    {
+
+    }
+*/
 
     /* ------------*/
     /* ----POST----*/
@@ -111,7 +117,6 @@ class TrainingController extends AbstractController
         // On retourne un message de succes
         $response->setContent(json_encode(["success" => TRUE]));
         return $response;
-
     }
 
     /* -----------*/
@@ -136,7 +141,6 @@ class TrainingController extends AbstractController
         $price_per_student = $content["pricePerStudent"];
         $training_description = $content["trainingDescription"];
         $subject = $content["subject"];
-
 
         //Get the event from DBAL
         $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($trainingId);
@@ -173,7 +177,6 @@ class TrainingController extends AbstractController
 
     }
 
-
     /* --------------*/
     /* ----DELETE----*/
     /* --------------*/
@@ -208,6 +211,5 @@ class TrainingController extends AbstractController
         }
         return $response;
     }
-
 
 }
