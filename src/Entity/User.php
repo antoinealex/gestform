@@ -378,24 +378,4 @@ class User implements UserInterface
 
         return $this;
     }
-
-    // /**
-    //  * Get the value of passwordEncoder
-    //  */ 
-    // public function getPasswordEncoder()
-    // {
-    //     return $this->passwordEncoder;
-    // }
-
-    // /**
-    //  * Set the value of passwordEncoder
-    //  *
-    //  * @return  self
-    //  */ 
-    // public function setPasswordEncoder($passwordEncoder)
-    // {
-    //     $this->passwordEncoder = $passwordEncoder;
-
-    //     return $this;
-    // }
 }
