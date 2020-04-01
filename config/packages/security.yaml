@@ -5,8 +5,7 @@ security:
 
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
-        app_user_provider:
+        in_database:
             entity:
                 class: App\Entity\User
                 property: email
@@ -14,9 +13,18 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
-            anonymous: lazy
-            provider: app_user_provider
+        api:
+            pattern: ^/gestform
+            stateless: true
+            anonymous: false
+            json_login:
+                username_path: email
+                check_path: /gestform/login_check
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            guard:
+                authenticators: 
+                - lexik_jwt_authentication.jwt_token_authenticator
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -27,5 +35,10 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/gestform/login_check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/gestform, roles: IS_AUTHENTICATED_FULLY }
+
+    role_hierarchy:
+        ROLE_USER: ROLE_USER
+        ROLE_TEACHER: ROLE_USER
+        ROLE_ADMIN: ROLE_TEACHER
