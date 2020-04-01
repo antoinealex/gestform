@@ -132,7 +132,6 @@ class CommentsController extends AbstractController
         $userId = $content["user_id"];
         $titleComment = $content["title_comment"];
         $bodyComment = $content["body_comment"];
-        //$dateComment = $content["date_comment"];
 
         //Get the event from DBAL
         $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
@@ -149,7 +148,6 @@ class CommentsController extends AbstractController
             $comment->setUser($this->getDoctrine()->getRepository(User::class)->findOneById($userId));
             $comment->setTitleComment($titleComment);
             $comment->setBodyComment($bodyComment);
-            //$comment->setDateComment(new DateTime($dateComment));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 1"]));
         }
