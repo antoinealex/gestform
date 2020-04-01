@@ -6,7 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
-        "lexik/jwt-authentication-bundle": "v2.6.5",
+        "lexik/jwt-authentication-bundle": "^2.6",
         "symfony/apache-pack": "^1.0",
         "symfony/console": "4.4.*",
         "symfony/dotenv": "4.4.*",
@@ -19,10 +19,10 @@
         "symfony/security-bundle": "4.4.*",
         "symfony/serializer": "4.4.*",
         "symfony/serializer-pack": "^1.0",
-        "symfony/yaml": "4.4.*",
-        "zircote/swagger-php": "3.0.3"
+        "symfony/yaml": "4.4.*"
     },
     "require-dev": {
+        "symfony/web-server-bundle": "4.4.*"
     },
     "config": {
         "preferred-install": {

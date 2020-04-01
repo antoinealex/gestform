@@ -17,7 +17,7 @@ security:
         main:
             pattern: ^/
             stateless: true
-            anonymous: true
+            anonymous: false
             json_login:
                 username_path: email
                 check_path: /security/login_check
@@ -41,3 +41,8 @@ security:
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_USER: ROLE_USER
+        ROLE_TEACHER: ROLE_USER
+        ROLE_ADMIN: ROLE_TEACHER

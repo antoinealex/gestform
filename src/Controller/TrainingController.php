@@ -8,12 +8,14 @@ use App\Entity\Training;
 use App\Repository\UserRepository;
 use App\Repository\TrainingRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TrainingController extends AbstractController
@@ -21,7 +23,6 @@ class TrainingController extends AbstractController
     /* -----------*/
     /* ----GET----*/
     /* -----------*/
-
 
     /**
      * @Route("/training", name="training", methods={"GET"})
@@ -58,8 +59,6 @@ class TrainingController extends AbstractController
         return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
     }
 
-
-
 /*
     public function getStudentTraining()
     {
@@ -93,11 +92,21 @@ class TrainingController extends AbstractController
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
         $training = new Training();
-
+        
         try {
             $training->setTeacher($teacher);
-            $training->setStartTraining(new DateTime($start_training));
-            $training->setEndTraining(new DateTime($end_training));
+            if (strtotime($start_training) >= strtotime("now")) {
+                $training->setStartTraining(new DateTime($start_training));
+            }else {
+                $response->setContent(json_encode(["success" => FALSE]));
+                exit();
+            }
+            if (strtotime($end_training) >= strtotime($start_training)) {
+                $training->setEndTraining(new DateTime($end_training));
+            }else {
+                $response->setContent(json_encode(["success" => FALSE]));
+                exit();
+            }
             $training->setMaxStudent((int)$max_student);
             $training->setPricePerStudent($price_per_student);
             $training->setTrainingDescription($training_description);
@@ -119,7 +128,6 @@ class TrainingController extends AbstractController
         // On retourne un message de succes
         $response->setContent(json_encode(["success" => TRUE]));
         return $response;
-
     }
 
     /* -----------*/
@@ -135,9 +143,8 @@ class TrainingController extends AbstractController
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        $trainingId = $request->query->get('id');
-
         //Fetch Data in local variables
+        $trainingId = $content["id"];
         $teacherId = $content["teacher_id"];
         $start_training = $content["startTtraining"];
         $end_training = $content["endTraining"];
@@ -145,7 +152,6 @@ class TrainingController extends AbstractController
         $price_per_student = $content["pricePerStudent"];
         $training_description = $content["trainingDescription"];
         $subject = $content["subject"];
-
 
         //Get the event from DBAL
         $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($trainingId);
@@ -159,7 +165,7 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
-            $training->setTeacher($teacherId);
+            $training->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId));
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
@@ -181,7 +187,6 @@ class TrainingController extends AbstractController
         return $response;
 
     }
-
 
     /* --------------*/
     /* ----DELETE----*/
@@ -217,6 +222,5 @@ class TrainingController extends AbstractController
         }
         return $response;
     }
-
 
 }

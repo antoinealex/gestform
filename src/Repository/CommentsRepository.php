@@ -36,15 +36,19 @@ class CommentsRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?Comments
+     /**
+      * @param Int $id
+      * @return mixed
+      * @return Comments[] Returns an array of Training objects
+      */
+    public function findCommentsById($id): ?Comments
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
+            ->andWhere('c.id = :val')
+            ->setParameter('val', $id)
             ->getQuery()
             ->getOneOrNullResult()
         ;
     }
-    */
+    
 }

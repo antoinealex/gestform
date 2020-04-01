@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
@@ -43,13 +44,13 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails"})
+     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails", "listComments"})
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails"})
+     * @Groups({"listUserFull","listUserSimple", "listTraining", "TrainingDetails", "listComments"})
      */
     private $firstname;
 
@@ -96,6 +97,8 @@ class User implements UserInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Comments", mappedBy="user")
      */
     private $comments;
+
+    //static UserPasswordEncoderInterface $passwordEncoder;
 
     public function __construct()
     {
