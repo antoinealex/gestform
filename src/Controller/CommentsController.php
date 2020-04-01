@@ -128,13 +128,14 @@ class CommentsController extends AbstractController
         $content = json_decode($requestParams, TRUE);
 
         //Fetch Data in local variables
+        $commentId = $content["id"];
         $userId = $content["user_id"];
         $titleComment = $content["title_comment"];
         $bodyComment = $content["body_comment"];        
 
 
         //Get the event from DBAL
-        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($userId);
+        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
