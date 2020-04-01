@@ -8,6 +8,7 @@ use App\Entity\Training;
 use App\Repository\UserRepository;
 use App\Repository\TrainingRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -91,12 +92,28 @@ class TrainingController extends AbstractController
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
         $training = new Training();
-
+        
         try {
             $training->setTeacher($teacher);
+<<<<<<< HEAD
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int) $max_student);
+=======
+            if (strtotime($start_training) >= strtotime("now")) {
+                $training->setStartTraining(new DateTime($start_training));
+            }else {
+                $response->setContent(json_encode(["success" => FALSE]));
+                exit();
+            }
+            if (strtotime($end_training) >= strtotime($start_training)) {
+                $training->setEndTraining(new DateTime($end_training));
+            }else {
+                $response->setContent(json_encode(["success" => FALSE]));
+                exit();
+            }
+            $training->setMaxStudent((int)$max_student);
+>>>>>>> 5ab541e76bde4b1f1f45624ece0e495b17ad6896
             $training->setPricePerStudent($price_per_student);
             $training->setTrainingDescription($training_description);
             $training->setSubject($subject);
@@ -158,6 +175,7 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
+<<<<<<< HEAD
             $training->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId))
                 ->setStartTraining(new DateTime($start_training))
                 ->setEndTraining(new DateTime($end_training))
@@ -165,6 +183,15 @@ class TrainingController extends AbstractController
                 ->setPricePerStudent($price_per_student)
                 ->setTrainingDescription($training_description)
                 ->setSubject($subject);
+=======
+            $training->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId));
+            $training->setStartTraining(new DateTime($start_training));
+            $training->setEndTraining(new DateTime($end_training));
+            $training->setMaxStudent((int)$max_student);
+            $training->setPricePerStudent($price_per_student);
+            $training->setTrainingDescription($training_description);
+            $training->setSubject($subject);
+>>>>>>> 5ab541e76bde4b1f1f45624ece0e495b17ad6896
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
