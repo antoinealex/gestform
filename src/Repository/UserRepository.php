@@ -24,6 +24,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     /**
      * Used to upgrade (rehash) the user's password automatically over time.
+     * @throws \Doctrine\ORM\ORMException
      */
     public function upgradePassword(UserInterface $user, string $newEncodedPassword): void
     {
@@ -49,6 +50,28 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+//    /**
+//     *
+//     * @param array $criteria
+//     * @param array|null $orderBy
+//     * @return User|null
+//     * @throws \Doctrine\ORM\NonUniqueResultException
+//     */
+//    public function findOneBy(array $criteria, array $orderBy = null) : ?User
+//    {
+//        foreach ($criteria as $key=>$value)
+//        {
+//            $criteriaKey = $key;
+//            $val = $value;
+//        }
+//        return $this->createQueryBuilder('u')
+//            ->andWhere('u.:key = :val')
+//            ->setParameter('key', $criteriaKey)
+//            ->setParameter('val', $val)
+//            ->getQuery()
+//            ->getOneOrNullResult();
+//    }
 
     /**
      * Used to return teacher by id

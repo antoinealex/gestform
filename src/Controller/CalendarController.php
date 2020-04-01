@@ -32,7 +32,14 @@ class CalendarController extends AbstractController
 	public function getUserEvents(Request $request) : Response
 	{
         $userId = $request->query->get('userId');
-        $events =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findByUserID($userId);
+        $events = $this->getDoctrine()->getRepository(CalendarEvent::class)->findByUserID($userId);
+        if (!$events) {
+            return new Response(
+                json_encode(["error"=>"User not found or no events to show"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
         //Serialization
         $responseContent = [];
         foreach($events as $event){
@@ -64,6 +71,13 @@ class CalendarController extends AbstractController
 	{
         $eventId = $request->query->get('id');
         $event =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        if (!$event) {
+            return new Response(
+                json_encode(["error"=>"Event not found"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
         //Serialization
         $responseContent = [
             "id" => $event->getId(),
@@ -95,11 +109,30 @@ class CalendarController extends AbstractController
 	public function newUserEvent(Request $request) : Response
 	{
 	    //Get data from POST request
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("userID"));
+        try {
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("userID"));
+        }
+        catch (\Exception $e)
+        {
+            return new Response(
+                json_encode(["error"=>"User not found"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
         $startEvent = $request->request->get("startEvent");
         $endEvent = $request->request->get("endEvent");
         $status = $request->request->get("status");
         $description = $request->request->get("eventDescription");
+
+        //Check fields completion
+        if (!$startEvent OR !$endEvent OR ($startEvent > $endEvent)) {
+            return new Response(
+                json_encode(["error"=>"Fields missing or incoherent"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
 
         //Creation of objects
         $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
@@ -116,6 +149,7 @@ class CalendarController extends AbstractController
             $event->setEventDescription($description);
         }
         catch (\Exception $e) {
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
@@ -126,11 +160,13 @@ class CalendarController extends AbstractController
             $em->flush();
         }
         catch (\Exception $e) {
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
         //Return
+        $response->setStatusCode(Response::HTTP_OK);
         $response->setContent(json_encode(["success" => TRUE]));
         return $response;
 	}
@@ -144,12 +180,31 @@ class CalendarController extends AbstractController
 	public function newUserAppointment(Request $request) : Response
 	{
         //Get data from POST request
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("userID"));
+        try {
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("userID"));
+        }
+        catch (\Exception $e)
+        {
+            return new Response(
+                json_encode(["error"=>"User not found"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
         $startEvent = $request->request->get("startEvent");
         $endEvent = $request->request->get("endEvent");
         $status = $request->request->get("status");
         $description = $request->request->get("eventDescription");
         $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("idUserInvitation"));
+
+        //Check fields completion
+        if (!$startEvent OR !$endEvent OR !$invitation OR ($startEvent > $endEvent)) {
+            return new Response(
+                json_encode(["error"=>"Fields missing or incoherent"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
 
         //Creation of objects
         $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
@@ -234,6 +289,15 @@ class CalendarController extends AbstractController
         }
         catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
+        }
+
+        //Check dates coherence
+        if ($startEvent > $endEvent) {
+            return new Response(
+                json_encode(["error"=>"Dates are incoherent"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
         }
 
         //Persistence
