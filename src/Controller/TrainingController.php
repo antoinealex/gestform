@@ -8,6 +8,7 @@ use App\Entity\Training;
 use App\Repository\UserRepository;
 use App\Repository\TrainingRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -91,11 +92,21 @@ class TrainingController extends AbstractController
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
         $training = new Training();
-
+        
         try {
             $training->setTeacher($teacher);
-            $training->setStartTraining(new DateTime($start_training));
-            $training->setEndTraining(new DateTime($end_training));
+            if (strtotime($start_training) >= strtotime("now")) {
+                $training->setStartTraining(new DateTime($start_training));
+            }else {
+                $response->setContent(json_encode(["success" => FALSE]));
+                exit();
+            }
+            if (strtotime($end_training) >= strtotime($start_training)) {
+                $training->setEndTraining(new DateTime($end_training));
+            }else {
+                $response->setContent(json_encode(["success" => FALSE]));
+                exit();
+            }
             $training->setMaxStudent((int)$max_student);
             $training->setPricePerStudent($price_per_student);
             $training->setTrainingDescription($training_description);
@@ -154,7 +165,7 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
-            $training->setTeacher($this->getDoctrine()->getRepository(Training::class)->findOneById($teacherId));
+            $training->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId));
             $training->setStartTraining(new DateTime($start_training));
             $training->setEndTraining(new DateTime($end_training));
             $training->setMaxStudent((int)$max_student);
