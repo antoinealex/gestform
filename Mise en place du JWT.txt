@@ -1,0 +1,31 @@
+		
+	**************************************************
+			Mise en place du JWT
+	**************************************************
+
+1- Télécharger le bundle d'authentification:
+
+	php composer req lexik/jwt-authentication-bundle
+
+2- vérifier que c'est ajouté à la fin du fichier .env
+3- vérifier que le fichier "lexik-jwt_authentication.yaml" est ajouté
+4- créer le dossier jwt dans le dossier config
+5- on va générer la clé privée avec la commande:
+	
+	openssl genrsa -out config/jwt/private.pem -aes256 4096
+
+6- saisir et confirmer le "pass phrase" la SAISIE n'est PAS AFFICHE c'est normal
+7- vérifier que la clé privée est générée dans le dossier jwt
+8- on va généerer la clé public avec la commande:
+
+	openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
+
+	-> explication: 	pour créer la clé public il a besoin de la clé privé 
+				d'où le fait qu'on lui indique la localisation de la clé privé
+
+9- vérifier que la clé public est créé dans le dossier jwt
+10- retourner sur le fichier ".env" et changer JWT_PHRASE par la phrase saisie lors de la génération des clés
+11- retourer sur le fichier "lexik-jwt_authentication.yaml"
+12- Saisir (il s'agit d'indiquer la durée de validité du token en s): 
+
+	token_ttl: 36000  

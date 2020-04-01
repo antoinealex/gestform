@@ -98,6 +98,8 @@ class User implements UserInterface
      */
     private $comments;
 
+    //static UserPasswordEncoderInterface $passwordEncoder;
+
     public function __construct()
     {
         $this->ownCalendarEvents = new ArrayCollection();
@@ -376,5 +378,4 @@ class User implements UserInterface
 
         return $this;
     }
-
 }

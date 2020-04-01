@@ -32,7 +32,7 @@ class UserController extends AbstractController
     // *******************************************************************************************************
 
     /**
-     * @Route("/users", name="api_users_list", methods={"GET"})
+     * @Route("/gestform/users", name="api_users_list", methods={"GET"})
      */
     public function getAllUser(): Response
     {
@@ -57,7 +57,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user", name="api_user_show", methods={"GET"})
+     * @Route("/gestform/user", name="api_user_show", methods={"GET"})
      */
     public function getGetUserByID(Request $request): Response
     {
@@ -85,7 +85,7 @@ class UserController extends AbstractController
     // *******************************************************************************************************
 
     /**
-     * @Route("/user", name="api_user_createUser", methods={"POST"})
+     * @Route("/gestform/user", name="api_user_createUser", methods={"POST"})
      */
     public function createUser(Request $request): Response
     {
@@ -140,7 +140,7 @@ class UserController extends AbstractController
     // *******************************************************************************************************
 
     /**
-     * @Route("/user", name="update_user", methods={"PUT"})
+     * @Route("/gestform/user", name="update_user", methods={"PUT"})
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
@@ -202,7 +202,7 @@ class UserController extends AbstractController
     // *******************************************************************************************************
 
     /**
-     * @Route("/user", name="api_user_deleteUser", methods={"DELETE"})
+     * @Route("/gestform/user", name="api_user_deleteUser", methods={"DELETE"})
      */
     public function deleteUser(Request $request): Response
     {
