@@ -128,14 +128,13 @@ class CommentsController extends AbstractController
         $content = json_decode($requestParams, TRUE);
 
         //Fetch Data in local variables
-        $commentId = $content["id"];
         $userId = $content["user_id"];
         $titleComment = $content["title_comment"];
-        $bodyComment = $content["body_comment"];
-        //$dateComment = $content["date_comment"];
+        $bodyComment = $content["body_comment"];        
+
 
         //Get the event from DBAL
-        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
+        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($userId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
@@ -146,10 +145,8 @@ class CommentsController extends AbstractController
 
         //Update event object
         try {
-            $comment->setUser($this->getDoctrine()->getRepository(User::class)->findOneById($userId));
             $comment->setTitleComment($titleComment);
             $comment->setBodyComment($bodyComment);
-            //$comment->setDateComment(new DateTime($dateComment));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 1"]));
         }

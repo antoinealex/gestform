@@ -1,2 +1,2 @@
 gestform_login_check:
-  path: /user/login_check
+    path: /security/login_check

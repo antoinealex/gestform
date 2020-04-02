@@ -8,10 +8,12 @@ use App\Repository\UserRepository;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTAuthenticatedEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -330,5 +332,30 @@ class UserController extends AbstractController
             $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
+    }
+
+    /**
+     * @Route("/user/getCurrentUser", name="currentuser", methods={"GET"})
+     * @param UserInterface $currentUser
+     * @return Response
+     */
+    public function getCurrentUser(UserInterface $currentUser): Response
+    {
+        $responseContent = [
+            'email'     => $currentUser->getEmail(),
+            'roles'     => $currentUser->getRoles(),
+            'lastname'  => $currentUser->getLastname(),
+            'firstname' => $currentUser->getFirstname(),
+            'phone'     => $currentUser->getPhone(),
+            'address'   => $currentUser->getAddress(),
+            'postcode'  => $currentUser->getPostcode(),
+            'city'      => $currentUser->getCity()
+        ];
+
+        return new Response(
+            json_encode($responseContent),
+            Response::HTTP_OK,
+            ["Content-Type"=>'application/json']
+        );
     }
 }

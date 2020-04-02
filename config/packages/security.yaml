@@ -5,7 +5,8 @@ security:
 
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        in_database:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
@@ -14,17 +15,18 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         api:
-            pattern: ^/user
+            pattern: ^/
             stateless: true
             anonymous: false
             json_login:
                 username_path: email
-                check_path: /user/login_check
+                check_path: /security/login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
             guard:
-                authenticators: 
-                - lexik_jwt_authentication.jwt_token_authenticator
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+            #provider: app_user_provider
 
             logout:
                 path: /logout
@@ -41,8 +43,10 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/user/login_check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/user, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/security/login_check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        # - { path: ^/profile, roles: ROLE_USER }
 
     role_hierarchy:
         ROLE_STUDENT: ROLE_STUDENT

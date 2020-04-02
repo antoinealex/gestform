@@ -115,7 +115,7 @@
         "version": "2.7.0"
     },
     "php": {
-        "version": "7.4"
+        "version": "7.2"
     },
     "phpdocumentor/reflection-common": {
         "version": "2.0.0"
@@ -320,9 +320,6 @@
     "symfony/serializer": {
         "version": "v4.4.5"
     },
-    "symfony/serializer-pack": {
-        "version": "v1.0.2"
-    },
     "symfony/service-contracts": {
         "version": "v2.0.1"
     },
@@ -384,16 +381,7 @@
     "twig/twig": {
         "version": "v3.0.3"
     },
-    "webimpress/safe-writer": {
-        "version": "2.0.0"
-    },
     "webmozart/assert": {
         "version": "1.7.0"
-    },
-    "zendframework/zend-code": {
-        "version": "3.4.1"
-    },
-    "zendframework/zend-eventmanager": {
-        "version": "3.2.1"
     }
 }
