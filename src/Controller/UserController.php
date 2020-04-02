@@ -15,7 +15,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -334,28 +333,4 @@ class UserController extends AbstractController
         return $response;
     }
 
-    /**
-     * @Route("/user/getCurrentUser", name="currentuser", methods={"GET"})
-     * @param UserInterface $currentUser
-     * @return Response
-     */
-    public function getCurrentUser(UserInterface $currentUser): Response
-    {
-        $responseContent = [
-            'email'     => $currentUser->getEmail(),
-            'roles'     => $currentUser->getRoles(),
-            'lastname'  => $currentUser->getLastname(),
-            'firstname' => $currentUser->getFirstname(),
-            'phone'     => $currentUser->getPhone(),
-            'address'   => $currentUser->getAddress(),
-            'postcode'  => $currentUser->getPostcode(),
-            'city'      => $currentUser->getCity()
-        ];
-
-        return new Response(
-            json_encode($responseContent),
-            Response::HTTP_OK,
-            ["Content-Type"=>'application/json']
-        );
-    }
 }
