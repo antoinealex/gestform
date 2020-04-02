@@ -28,6 +28,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class UserController extends AbstractController
 {
 
+    /*---------------------------------     PASSWORD ENCODER      -----------------------------------------*/
     private $passwordEncoder;
 
     public function __construct(UserPasswordEncoderInterface $passwordEncoder)
@@ -305,6 +306,8 @@ class UserController extends AbstractController
     /**
      * @Route("/delete_user", name="api_user_deleteUser", methods={"DELETE"})
      * @IsGranted("ROLE_ADMIN")
+     * @param UserInterface $currentUser
+     * @return Response
      */
 
     public function deleteUser(Request $request): Response
