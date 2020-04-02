@@ -14,17 +14,23 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         api:
-            pattern: ^/gestform
+            pattern: ^/user
             stateless: true
             anonymous: false
             json_login:
                 username_path: email
-                check_path: /gestform/login_check
+                check_path: /user/login_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
             guard:
                 authenticators: 
                 - lexik_jwt_authentication.jwt_token_authenticator
+
+            logout:
+                path: /logout
+                # where to redirect after logout
+                target: /
+                invalidate_session: true
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -35,10 +41,10 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/gestform/login_check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/gestform, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/user/login_check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/user, roles: IS_AUTHENTICATED_FULLY }
 
     role_hierarchy:
-        ROLE_USER: ROLE_USER
-        ROLE_TEACHER: ROLE_USER
+        ROLE_STUDENT: ROLE_STUDENT
+        ROLE_TEACHER: ROLE_STUDENT
         ROLE_ADMIN: ROLE_TEACHER
