@@ -8,18 +8,27 @@ use App\Repository\UserRepository;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTAuthenticatedEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
+/**
+ * @Route("/user", name="gestform_user")
+ * 
+ */
 
 class UserController extends AbstractController
 {
 
+    /*---------------------------------     PASSWORD ENCODER      -----------------------------------------*/
     private $passwordEncoder;
 
     public function __construct(UserPasswordEncoderInterface $passwordEncoder)
@@ -31,8 +40,11 @@ class UserController extends AbstractController
     // *****************************************   GET   *****************************************************
     // *******************************************************************************************************
 
+    /*---------------------------------      GET ALL USERS (ADMIN)     -------------------------------------*/
+
     /**
-     * @Route("/gestform/users", name="api_users_list", methods={"GET"})
+     * @Route("/list_users", name="api_users_list", methods={"GET"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getAllUser(): Response
     {
@@ -56,10 +68,13 @@ class UserController extends AbstractController
         return $response;
     }
 
+    /*---------------------------------      GET USER BY ID (ADMIN)     -------------------------------------*/
+
     /**
-     * @Route("/gestform/user", name="api_user_show", methods={"GET"})
+     * @Route("/show_user", name="api_user_show", methods={"GET"})
+     * @IsGranted("ROLE_ADMIN")
      */
-    public function getGetUserByID(Request $request): Response
+    public function getUserByID(Request $request): Response
     {
         $userId = $request->query->get('id');
         $user = $this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
@@ -80,12 +95,39 @@ class UserController extends AbstractController
         return $response;
     }
 
+    /*---------------------------------      GET CURRENT USER (USER)     -------------------------------------*/
+
+    /**
+     * @Route("/show_currentUser", name="api_user_show", methods={"GET"})
+     * @IsGranted("ROLE_USER")
+     */
+    public function getCurrentUser(UserInterface $currentUser, Request $request): Response
+    {
+        $responseContent = [
+            'email'     => $currentUser->getEmail(),
+            'roles'     => $currentUser->getRoles(),
+            'lastname'  => $currentUser->getLastname(),
+            'firstname' => $currentUser->getFirstname(),
+            'phone'     => $currentUser->getPhone(),
+            'address'   => $currentUser->getAddress(),
+            'postcode'  => $currentUser->getPostcode(),
+            'city'      => $currentUser->getCity()
+        ];
+
+        $response = new Response(json_encode($responseContent));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+
     // *******************************************************************************************************
     // *****************************************   POST   ****************************************************
     // *******************************************************************************************************
 
+    /*---------------------------------      POST A NEW USER (ADMIN)     -----------------------------------*/
+
     /**
-     * @Route("/gestform/user", name="api_user_createUser", methods={"POST"})
+     * @Route("/create_user", name="api_user_createUser", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function createUser(Request $request): Response
     {
@@ -139,19 +181,23 @@ class UserController extends AbstractController
     // *****************************************   PUT   *****************************************************
     // *******************************************************************************************************
 
+    /*---------------------------------      PUT ANY USER (ADMIN)     --------------------------------------*/
+
     /**
-     * @Route("/gestform/user", name="update_user", methods={"PUT"})
+     * @Route("/update_user", name="update_user", methods={"PUT"})
+     * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+
     public function updateUser(Request $request): Response
     {
         //On récupère les données dans le body de la requête
         $requestParams = $request->getContent();
         $content = json_decode($requestParams, TRUE);
 
-        //On stocke les données temporairement dans des variables
+        // On stocke les données temporairement dans des variables
         $userId =       $content["id"];
         $email  =       $content["email"];
         $roles =        $content["roles"];
@@ -163,15 +209,15 @@ class UserController extends AbstractController
         $postcode =     $content["postcode"];
         $city =         $content["city"];
 
-        // On récupère l'utilisateur qui correspond a l'id donné dans la requête
+        // On récupère l'utilisateur qui correspond à l'id donné dans la requête
         $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
         $em = $this->getDoctrine()->getManagerForClass(User::class);
 
-        //On prèpare la réponse
+        // On prèpare la réponse
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
 
-        // On modifie les données de de l'utilisateur
+        // On modifie les données de l'utilisateur
         try {
             $user   ->setEmail($email)
                     ->setRoles([$roles])
@@ -197,13 +243,73 @@ class UserController extends AbstractController
         return $response;
     }
 
+    /*---------------------------------      PUT CURRENT USER (USER)     -------------------------------------*/
+
+    /**
+    * @Route("/update_currentUser", name="currentuser", methods={"PUT"})
+    * @IsGranted("ROLE_USER")
+    * @param UserInterface $currentUser
+    * @return Response
+    */
+
+    public function updateCurrentUser(UserInterface $currentUser, Request $request): Response
+    {
+
+        // On récupère les données dans le body de la requête
+        $requestParams = $request->getContent();
+        $content = json_decode($requestParams, TRUE);
+
+        // On stocke les données temporairement dans des variables
+        $email  =       $content["email"];
+        $lastname =     $content["lastname"];
+        $firstname =    $content["firstname"];
+        $phone =        $content["phone"];
+        $address =      $content["address"];
+        $postcode =     $content["postcode"];
+        $city =         $content["city"];
+
+        $em = $this->getDoctrine()->getManagerForClass(User::class);
+
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        // On modifie les données de de l'utilisateur
+        try {
+            $currentUser    ->setEmail($email)
+                            ->setLastname($lastname)
+                            ->setFirstname($firstname)
+                            ->setPhone($phone)
+                            ->setAddress($address)
+                            ->setPostcode($postcode)
+                            ->setCity($city);
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+
+        // On persiste l'objet modifié
+        try {
+            $em->persist($currentUser);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+        return $response;
+    }
+
     // *******************************************************************************************************
     // *****************************************   DELETE   **************************************************
     // *******************************************************************************************************
 
+    /*---------------------------------      DELETE USER BY ID (ADMIN)     ---------------------------------*/
+
     /**
-     * @Route("/gestform/user", name="api_user_deleteUser", methods={"DELETE"})
+     * @Route("/delete_user", name="api_user_deleteUser", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN")
+     * @param UserInterface $currentUser
+     * @return Response
      */
+
     public function deleteUser(Request $request): Response
     {
         // On prepare la réponse à la requête
@@ -229,4 +335,5 @@ class UserController extends AbstractController
         }
         return $response;
     }
+
 }
