@@ -77,7 +77,6 @@ class CommentsController extends AbstractController
         // On prend toutes les données envoyés en POST
         $title_comment = $request->request->get("title_comment");
         $body_comment = $request->request->get("body_comment");
-        $date_comment = $request->request->get("date_comment");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
