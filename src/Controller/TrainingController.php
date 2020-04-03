@@ -46,25 +46,22 @@ class TrainingController extends AbstractController
      */
     public function getTrainingById(Request $request, SerializerInterface $serializer)
     {
-        $trainingId = $request->query->get('id');
-        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
         
-        $resultat = $serializer->serialize(
-            $training,
-            'json',
-            [
-                'groups'  => ['TrainingDetails']
-            ]
-        );
-        return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
-    }
+        $trainingId = $request->query->get('id');
 
-/*
-    public function getStudentTraining()
-    {
+            $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+        
+            $resultat = $serializer->serialize(
+                $training,
+                'json',
+                [
+                    'groups'  => ['TrainingDetails']
+                ]
+            );
+            return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
+        
 
     }
-*/
 
     /* ------------*/
     /* ----POST----*/
@@ -80,17 +77,19 @@ class TrainingController extends AbstractController
         $teacher = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("teacher_id"));
 
         // On prend toutes les données envoyés en POST
-        $start_training =$request->request->get("start_training");
-        $end_training =$request->request->get("end_training");
-        $max_student =$request->request->get("max_student");
-        $price_per_student =$request->request->get("price_per_student");
-        $training_description =$request->request->get("training_description");
-        $subject =$request->request->get("subject");
+        $start_training = $request->request->get("start_training");
+        $end_training = $request->request->get("end_training");
+        $max_student = $request->request->get("max_student");
+        $price_per_student = $request->request->get("price_per_student");
+        $training_description = $request->request->get("training_description");
+        $subject = $request->request->get("subject");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
+
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
+
         $training = new Training();
         
         try {
@@ -120,13 +119,51 @@ class TrainingController extends AbstractController
         try {
             $em->persist($training);
             $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
         // On retourne un message de succes
-        $response->setContent(json_encode(["success" => TRUE]));
+        return $response;
+    }
+
+
+
+    /**
+     * @Route("/addRegistration", name="add_registration", methods={"POST"})
+     */    
+    public function addRegistration(Request $request)
+    {
+        //Préparation de la réponse
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Récupération de la requête
+        $trainingId = $request->request->get("training_id");
+        $userId = $request->request->get("user_id");
+
+        //Récupération du training et du user
+        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
+
+        //Ajout du participant
+        try {
+            $training->addParticipant($user);
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+
+        //Persistance
+        try {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($training);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
         return $response;
     }
 
@@ -154,7 +191,7 @@ class TrainingController extends AbstractController
         $subject = $content["subject"];
 
         //Get the event from DBAL
-        $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($trainingId);
+        $training = $this->getDoctrine()->getRepository(User::class)->findOneByID($trainingId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
@@ -220,6 +257,39 @@ class TrainingController extends AbstractController
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
+        return $response;
+    }
+
+    
+    /**
+     * @Route("/unsubscribeStudent", name="unsubscribe_student", methods={"DELETE"})
+     */    
+    public function unsubscribeStudent(Request $request)
+    {
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        $trainingId = $request->request->get("training_id");
+        $userId = $request->request->get("user_id");
+
+        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
+
+        try {
+            $training->removeParticipant($user);
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+
+        try {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($training);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+
         return $response;
     }
 
