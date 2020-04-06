@@ -17,34 +17,42 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+/**
+ * @Route("/comments", name="gestform_user")
+ * 
+ */
 
 class CommentsController extends AbstractController
 {
-    /* -----------*/
-    /* ----GET----*/
-    /* -----------*/
+// *******************************************************************************************************
+// *****************************************   GET   *****************************************************
+// *******************************************************************************************************
 
+    /*---------------------------------      GET ALL COMMENTS (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/comments", name="comments", methods={"GET"})
+     * @Route("/getAllComments", name="comments", methods={"GET"})
      * 
      */
     public function getAllComments(CommentsRepository $allComments, SerializerInterface $serializer)
     {
-        $subject = $allComments->findAll(); //Récupérer tous les cours
-        $resultat = $serializer->serialize( //Les transformer en format Json  
-            $subject,                       //Il doit serialiser $subject
-            'json',                         //Au format Json
+        $subject = $allComments->findAll(); 
+        $resultat = $serializer->serialize(  
+            $subject,                       
+            'json',                         
             [
-                'groups'  => ['listComments'] //Qui sont dans le groupe "listTraining"
+                'groups'  => ['listComments']
             ]
         );
-        return new JsonResponse($resultat, 200, [], true); //Retourne moi $resultat avec le code statut 200. "true" puisqu'il s'agit déjà de Json
+        return new JsonResponse($resultat, 200, [], true);
     }
 
+    /*---------------------------------      GET COMMENT BY ID (ADMIN)     -------------------------------------*/
+
     /**
-     * @Route("/commentsById", name="comments_id", methods={"GET"})
+     * @Route("/getCommentsById", name="comments_id", methods={"GET"})
      */
+
     public function getCommentsById(Request $request, SerializerInterface $serializer)
     {
         $commentsId = $request->query->get('id');
@@ -57,26 +65,28 @@ class CommentsController extends AbstractController
                 'groups'  => ['listComments']
             ]
         );
-        return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
+        return new JsonResponse($resultat, Response::HTTP_OK, [], true);
     }
 
+// *******************************************************************************************************
+// *****************************************   POST   ****************************************************
+// *******************************************************************************************************
 
-    /* ------------*/
-    /* ----POST----*/
-    /* ------------*/
-
+    /*---------------------------------      POST A COMMENT (ADMIN)     -------------------------------------*/
 
     /**
      * @Route("/addComments", name="add_Comments", methods={"POST"})
      */
+
     public function addComments(Request $request): Response
     {
         // On prend l'id du teacherUser
         $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("user_id"));
 
         // On prend toutes les données envoyés en POST
-        $title_comment = $request->request->get("title_comment");
-        $body_comment = $request->request->get("body_comment");
+        $title_comment =    $request->request->get("title_comment");
+        $body_comment =     $request->request->get("body_comment");
+        $date_comment =     $request->request->get("date_comment");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
@@ -85,10 +95,10 @@ class CommentsController extends AbstractController
         $comment = new Comments();
 
         try {
-            $comment->setUser($user);
-            $comment->setTitleComment($title_comment);
-            $comment->setBodyComment($body_comment);
-            $comment->setDateComment(new DateTime("now"));
+            $comment    ->setUser($user)
+                        ->setTitleComment($title_comment)
+                        ->setBodyComment($body_comment)
+                        ->setDateComment(new DateTime("now"));
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => "erreur 1"]));
             return $response;
@@ -96,8 +106,8 @@ class CommentsController extends AbstractController
 
         // On persist l'object = on l'écris dans la BDD
         try {
-            $em->persist($comment);
-            $em->flush();
+            $em ->persist($comment)
+                ->flush();
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => "erreur 2"]));
             return $response;
@@ -106,13 +116,13 @@ class CommentsController extends AbstractController
         // On retourne un message de succes
         $response->setContent(json_encode(["success" => TRUE]));
         return $response;
-
     }
 
+// *******************************************************************************************************
+// *****************************************   PUT   *****************************************************
+// *******************************************************************************************************
 
-    /* -----------*/
-    /* ----PUT----*/
-    /* -----------*/
+    /*---------------------------------      PUT A COMMENT (ADMIN)     -------------------------------------*/
 
     /**
      * @Route("/updateComment", name="update_comment", methods={"PUT"})
@@ -120,17 +130,17 @@ class CommentsController extends AbstractController
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+
     public function updateComment(Request $request): Response
     {
         //Get and decode Data from request body
-        $requestParams = $request->getContent();
-        $content = json_decode($requestParams, TRUE);
+        $requestParams =    $request->getContent();
+        $content =          json_decode($requestParams, TRUE);
 
         //Fetch Data in local variables
-        $commentId = $content["id"];
-        $userId = $content["user_id"];
+        $userId =       $content["user_id"];
         $titleComment = $content["title_comment"];
-        $bodyComment = $content["body_comment"];        
+        $bodyComment =  $content["body_comment"];        
 
 
         //Get the event from DBAL
@@ -145,16 +155,16 @@ class CommentsController extends AbstractController
 
         //Update event object
         try {
-            $comment->setTitleComment($titleComment);
-            $comment->setBodyComment($bodyComment);
+            $comment->setTitleComment($titleComment)
+                    ->setBodyComment($bodyComment);
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 1"]));
         }
 
         //Persistence
         try {
-            $em->persist($comment);
-            $em->flush();
+            $em ->persist($comment)
+                ->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 2"]));
@@ -162,15 +172,16 @@ class CommentsController extends AbstractController
         return $response;
     }
 
+// *******************************************************************************************************
+// *****************************************   DELETE   **************************************************
+// *******************************************************************************************************
 
-
-    /* --------------*/
-    /* ----DELETE----*/
-    /* --------------*/
+    /*---------------------------------      DELETE A COMMENT (DELETE)     -------------------------------------*/
 
     /**
      * @Route("/deleteComment", name="delete_Comment", methods={"DELETE"})
      */
+
     public function deleteComment(Request $request): Response
     {
         //Get Entity Manager and prepare response
@@ -190,8 +201,8 @@ class CommentsController extends AbstractController
 
         //Remove object
         try {
-            $em->remove($Comment);
-            $em->flush();
+            $em ->remove($Comment)
+                ->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 2"]));

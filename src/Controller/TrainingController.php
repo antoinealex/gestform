@@ -18,55 +18,61 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+/**
+ * @Route("/training", name="gestform_training")
+ * 
+ */    
+
 class TrainingController extends AbstractController
 {
-    /* -----------*/
-    /* ----GET----*/
-    /* -----------*/
+// *******************************************************************************************************
+// *****************************************   GET   *****************************************************
+// *******************************************************************************************************
+
+/*---------------------------------      GET ALL TRAINING (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/training", name="training", methods={"GET"})
+     * @Route("/getAllTraining", name="training", methods={"GET"})
      * 
      */
     public function getAllTraining(TrainingRepository $allTraining, SerializerInterface $serializer)
     {
-        $subject = $allTraining->findAll(); //Récupérer tous les cours
-        $resultat = $serializer->serialize( //Les transformer en format Json  
-            $subject,                       //Il doit serialiser $subject
-            'json',                         //Au format Json
+        $subject = $allTraining->findAll(); 
+        $resultat = $serializer->serialize( 
+            $subject,                       
+            'json',                         
             [
-                'groups'  => ['listTraining'] //Qui sont dans le groupe "listTraining"
+                'groups'  => ['listTraining']
             ]
         );
-        return new JsonResponse($resultat, 200, [], true); //Retourne moi $resultat avec le code statut 200. "true" puisqu'il s'agit déjà de Json
+        return new JsonResponse($resultat, 200, [], true);
     }
 
+/*---------------------------------      GET TRAINING BY ID(ADMIN)     -------------------------------------*/
+
     /**
-     * @Route("/trainingById", name="training_id", methods={"GET"})
+     * @Route("/getTrainingById", name="training_id", methods={"GET"})
      */
     public function getTrainingById(Request $request, SerializerInterface $serializer)
     {
-        
         $trainingId = $request->query->get('id');
-
-            $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
         
-            $resultat = $serializer->serialize(
-                $training,
-                'json',
-                [
-                    'groups'  => ['TrainingDetails']
-                ]
-            );
-            return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
-        
-
+        $resultat = $serializer->serialize(
+            $training,
+            'json',
+            [
+                'groups'  => ['TrainingDetails']
+            ]
+        );
+        return new JsonResponse($resultat, Response::HTTP_OK, [], true); //Response::HTTP_ok équivaut à 200
     }
 
-    /* ------------*/
-    /* ----POST----*/
-    /* ------------*/
+// *******************************************************************************************************
+// *****************************************   POST   ****************************************************
+// *******************************************************************************************************
 
+/*---------------------------------      POST A NEW TRAINING(ADMIN)     -------------------------------------*/
 
     /**
      * @Route("/addTraining", name="add_training", methods={"POST"})
@@ -77,19 +83,17 @@ class TrainingController extends AbstractController
         $teacher = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("teacher_id"));
 
         // On prend toutes les données envoyés en POST
-        $start_training = $request->request->get("start_training");
-        $end_training = $request->request->get("end_training");
-        $max_student = $request->request->get("max_student");
-        $price_per_student = $request->request->get("price_per_student");
+        $start_training =       $request->request->get("start_training");
+        $end_training =         $request->request->get("end_training");
+        $max_student =          $request->request->get("max_student");
+        $price_per_student =    $request->request->get("price_per_student");
         $training_description = $request->request->get("training_description");
-        $subject = $request->request->get("subject");
+        $subject =$request->request->get("subject");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
-
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
-
         $training = new Training();
         
         try {
@@ -106,10 +110,10 @@ class TrainingController extends AbstractController
                 $response->setContent(json_encode(["success" => FALSE]));
                 exit();
             }
-            $training->setMaxStudent((int)$max_student);
-            $training->setPricePerStudent($price_per_student);
-            $training->setTrainingDescription($training_description);
-            $training->setSubject($subject);
+            $training   ->setMaxStudent((int)$max_student)
+                        ->setPricePerStudent($price_per_student)
+                        ->setTrainingDescription($training_description)
+                        ->setSubject($subject);
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
@@ -117,59 +121,23 @@ class TrainingController extends AbstractController
 
         // On persist l'object = on l'écris dans la BDD
         try {
-            $em->persist($training);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
+            $em ->persist($training)
+                ->flush();
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
         // On retourne un message de succes
+        $response->setContent(json_encode(["success" => TRUE]));
         return $response;
     }
 
+// ******************************************************************************************************
+// *****************************************   PUT   ****************************************************
+// ******************************************************************************************************
 
-
-    /**
-     * @Route("/addRegistration", name="add_registration", methods={"POST"})
-     */    
-    public function addRegistration(Request $request)
-    {
-        //Préparation de la réponse
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-
-        //Récupération de la requête
-        $trainingId = $request->request->get("training_id");
-        $userId = $request->request->get("user_id");
-
-        //Récupération du training et du user
-        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
-
-        //Ajout du participant
-        try {
-            $training->addParticipant($user);
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-
-        //Persistance
-        try {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($training);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-        return $response;
-    }
-
-    /* -----------*/
-    /* ----PUT----*/
-    /* -----------*/
+/*---------------------------------      POST A NEW TRAINING(ADMIN)     -------------------------------*/
 
     /**
      * @Route("/updateTraining", name="update_training", methods={"PUT"})
@@ -177,21 +145,21 @@ class TrainingController extends AbstractController
     public function updateTraining(Request $request): Response
     {
         //Get and decode Data from request body
-        $requestParams = $request->getContent();
-        $content = json_decode($requestParams, TRUE);
+        $requestParams =    $request->getContent();
+        $content =          json_decode($requestParams, TRUE);
 
         //Fetch Data in local variables
-        $trainingId = $content["id"];
-        $teacherId = $content["teacher_id"];
-        $start_training = $content["startTtraining"];
-        $end_training = $content["endTraining"];
-        $max_student = $content["maxStudent"];
-        $price_per_student = $content["pricePerStudent"];
+        $trainingId =           $content["id"];
+        $teacherId =            $content["teacher_id"];
+        $start_training =       $content["startTtraining"];
+        $end_training =         $content["endTraining"];
+        $max_student =          $content["maxStudent"];
+        $price_per_student =    $content["pricePerStudent"];
         $training_description = $content["trainingDescription"];
-        $subject = $content["subject"];
+        $subject =              $content["subject"];
 
         //Get the event from DBAL
-        $training = $this->getDoctrine()->getRepository(User::class)->findOneByID($trainingId);
+        $training = $this->getDoctrine()->getRepository(Training::class)->findOneByID($trainingId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
@@ -202,21 +170,21 @@ class TrainingController extends AbstractController
 
         //Update training object
         try {
-            $training->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId));
-            $training->setStartTraining(new DateTime($start_training));
-            $training->setEndTraining(new DateTime($end_training));
-            $training->setMaxStudent((int)$max_student);
-            $training->setPricePerStudent($price_per_student);
-            $training->setTrainingDescription($training_description);
-            $training->setSubject($subject);
+            $training   ->setTeacher($this->getDoctrine()->getRepository(User::class)->findOneByID($teacherId))
+                        ->setStartTraining(new DateTime($start_training))
+                        ->setEndTraining(new DateTime($end_training))
+                        ->setMaxStudent((int)$max_student)
+                        ->setPricePerStudent($price_per_student)
+                        ->setTrainingDescription($training_description)
+                        ->setSubject($subject);
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
 
         //Persistence
         try {
-            $em->persist($training);
-            $em->flush();
+            $em ->persist($training)
+                ->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
@@ -225,9 +193,11 @@ class TrainingController extends AbstractController
 
     }
 
-    /* --------------*/
-    /* ----DELETE----*/
-    /* --------------*/
+// ******************************************************************************************************
+// *****************************************   DELETE   *************************************************
+// ******************************************************************************************************
+
+/*---------------------------------      DELETE TRAINING (ADMIN)     ------------------------------*/
 
     /**
      * @Route("/deleteTraining", name="delete_training", methods={"DELETE"})
@@ -251,46 +221,12 @@ class TrainingController extends AbstractController
 
         //Remove object
         try {
-            $em->remove($training);
-            $em->flush();
+            $em ->remove($training)
+                ->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
     }
-
-    
-    /**
-     * @Route("/unsubscribeStudent", name="unsubscribe_student", methods={"DELETE"})
-     */    
-    public function unsubscribeStudent(Request $request)
-    {
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-
-        $trainingId = $request->request->get("training_id");
-        $userId = $request->request->get("user_id");
-
-        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
-
-        try {
-            $training->removeParticipant($user);
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-
-        try {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($training);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-
-        return $response;
-    }
-
 }

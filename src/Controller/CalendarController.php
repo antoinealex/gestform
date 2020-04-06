@@ -9,26 +9,28 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Annotations as OA;
-
 use App\Entity\CalendarEvent;
 use App\Entity\User;
 
 /**
- * @Route("/calendar", name="calendar_")
+ * @Route("/calendar", name="gestform_calendar")
  */
 
 class CalendarController extends AbstractController
 {
 
-    /* -----------*/
-	/* ----GET----*/
-	/* -----------*/
+    // *******************************************************************************************************
+    // *****************************************   GET   *****************************************************
+    // *******************************************************************************************************
+
+    /*---------------------------------      GET ALL EVENTS BY USER (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/user_event", name="user", methods={"GET"})
+     * @Route("/getUserEvents", name="user", methods={"GET"})
      * @param Request $request
      * @return Response
      */
+
 	public function getUserEvents(Request $request) : Response
 	{
         $userId = $request->query->get('userId');
@@ -40,32 +42,36 @@ class CalendarController extends AbstractController
                 ['Content-Type'=>'application/json']
             );
         }
-        //Serialization
+        // Serialization
         $responseContent = [];
         foreach($events as $event){
             $responseContent[$event->getId()] = [
-                "user" => $event->getuser()->getId(),
-                "startEvent" => $event->getStartEvent()->format('Y-m-d H:i:s'),
-                "endEvent" => $event->getEndEvent()->format('Y-m-d H:i:s'),
-                "status" => $event->getStatus(),
-                "description" => $event->getEventDescription()
+                "user"          => $event->getuser()->getId(),
+                "startEvent"    => $event->getStartEvent()->format('Y-m-d H:i:s'),
+                "endEvent"      => $event->getEndEvent()->format('Y-m-d H:i:s'),
+                "status"        => $event->getStatus(),
+                "description"   => $event->getEventDescription()
             ];
             if ($event->getuserInvited())  {
                 $responseContent[$event->getId()]["invitation"] = $event->getuserInvited()->getId();
             }
         }
 
+        // Response
         $response = new Response(json_encode($responseContent));
         $response->headers->set('Content-Type', 'application/json');
         return $response;
 	}
 
+    /*---------------------------------      GET AN EVENT BY ID (ADMIN)     -------------------------------------*/
+
     /**
-     * @Route("/event", name="event", methods={"GET"})
+     * @Route("/getEventById", name="event", methods={"GET"})
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+
 	public function getEventById(Request $request
     ) : Response
 	{
@@ -78,34 +84,40 @@ class CalendarController extends AbstractController
                 ['Content-Type'=>'application/json']
             );
         }
-        //Serialization
+
+        // Serialization
         $responseContent = [
-            "id" => $event->getId(),
-            "user" => $event->getuser()->getId(),
-            "startEvent" => $event->getStartEvent()->format('Y-m-d H:i:s'),
-            "endEvent" => $event->getEndEvent()->format('Y-m-d H:i:s'),
-            "status" => $event->getStatus(),
-            "description" => $event->getEventDescription()
+            "id"            => $event->getId(),
+            "user"          => $event->getuser()->getId(),
+            "startEvent"    => $event->getStartEvent()->format('Y-m-d H:i:s'),
+            "endEvent"      => $event->getEndEvent()->format('Y-m-d H:i:s'),
+            "status"        => $event->getStatus(),
+            "description"   => $event->getEventDescription()
         ];
         if ($event->getuserInvited())  {
             $responseContent["invitation"] = $event->getuserInvited()->getId();
         }
+
+        // Response
         $response = new Response(json_encode($responseContent));
         $response->headers->set('Content-Type', 'application/json');
         return $response;
 	}
 
-	/* -----------*/
-	/* ----POST---*/
-	/* -----------*/
+	// *******************************************************************************************************
+    // *****************************************   POST   *****************************************************
+    // *******************************************************************************************************
+
+    /*---------------------------------      POST A NEW EVENT (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/new_user_event", name="new_user_ev", methods={"POST"})
+     * @Route("/newUserEvent", name="new_user_ev", methods={"POST"})
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Exception
      */
+
 	public function newUserEvent(Request $request) : Response
 	{
 	    //Get data from POST request
@@ -120,10 +132,10 @@ class CalendarController extends AbstractController
                 ['Content-Type'=>'application/json']
             );
         }
-        $startEvent = $request->request->get("startEvent");
-        $endEvent = $request->request->get("endEvent");
-        $status = $request->request->get("status");
-        $description = $request->request->get("eventDescription");
+        $startEvent =   $request->request->get("startEvent");
+        $endEvent =     $request->request->get("endEvent");
+        $status =       $request->request->get("status");
+        $description =  $request->request->get("eventDescription");
 
         //Check fields completion
         if (!$startEvent OR !$endEvent OR ($startEvent > $endEvent)) {
@@ -142,41 +154,44 @@ class CalendarController extends AbstractController
 
         try {
             //Hydrate new event object
-            $event->setuser($user);
-            $event->setStartEvent(new DateTime($startEvent));
-            $event->setEndEvent(new DateTime($endEvent));
-            $event->setStatus($status);
-            $event->setEventDescription($description);
+            $event  ->setuser($user)
+                    ->setStartEvent(new DateTime($startEvent))
+                    ->setEndEvent(new DateTime($endEvent))
+                    ->setStatus($status)
+                    ->setEventDescription($description);
         }
         catch (\Exception $e) {
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-            $response->setContent(json_encode(["success" => FALSE]));
+            $response   ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+                        ->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
         //Persistence
         try {
-            $em->persist($event);
-            $em->flush();
+            $em ->persist($event)
+                ->flush();
         }
         catch (\Exception $e) {
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-            $response->setContent(json_encode(["success" => FALSE]));
+            $response   ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+                        ->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
 
         //Return
-        $response->setStatusCode(Response::HTTP_OK);
-        $response->setContent(json_encode(["success" => TRUE]));
+        $response   ->setStatusCode(Response::HTTP_OK)
+                    ->setContent(json_encode(["success" => TRUE]));
         return $response;
 	}
 
+    /*---------------------------------      POST A NEW APPOINTEMENT (ADMIN)     -------------------------------------*/
+
     /**
-     * @Route("/new_user_appointment", name="new_user_apt", methods={"POST"})
+     * @Route("/newUserAppointment", name="new_user_apt", methods={"POST"})
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+
 	public function newUserAppointment(Request $request) : Response
 	{
         //Get data from POST request
@@ -191,11 +206,11 @@ class CalendarController extends AbstractController
                 ['Content-Type'=>'application/json']
             );
         }
-        $startEvent = $request->request->get("startEvent");
-        $endEvent = $request->request->get("endEvent");
-        $status = $request->request->get("status");
-        $description = $request->request->get("eventDescription");
-        $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("idUserInvitation"));
+        $startEvent =   $request->request->get("startEvent");
+        $endEvent =     $request->request->get("endEvent");
+        $status =       $request->request->get("status");
+        $description =  $request->request->get("eventDescription");
+        $invitation =   $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("idUserInvitation"));
 
         //Check fields completion
         if (!$startEvent OR !$endEvent OR !$invitation OR ($startEvent > $endEvent)) {
@@ -214,12 +229,12 @@ class CalendarController extends AbstractController
 
         try {
             //Hydrate new event object
-            $event->setuser($user);
-            $event->setStartEvent(new DateTime($startEvent));
-            $event->setEndEvent(new DateTime($endEvent));
-            $event->setStatus($status);
-            $event->setEventDescription($description);
-            $event->setuserInvited($invitation);
+            $event  ->setuser($user)
+                    ->setStartEvent(new DateTime($startEvent))
+                    ->setEndEvent(new DateTime($endEvent))
+                    ->setStatus($status)
+                    ->setEventDescription($description)
+                    ->setuserInvited($invitation);
         }
         catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
@@ -228,8 +243,8 @@ class CalendarController extends AbstractController
 
         //Persistence
         try {
-            $em->persist($event);
-            $em->flush();
+            $em ->persist($event)
+                ->flush();
         }
         catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
@@ -241,28 +256,32 @@ class CalendarController extends AbstractController
         return $response;
 	}
 
-    /* -----------*/
-    /* ----PUT----*/
-    /* -----------*/
+    // *******************************************************************************************************
+    // *****************************************   PUT   *****************************************************
+    // *******************************************************************************************************
+
+    /*---------------------------------      PUT AN EVENT (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/update_event", name="update_event", methods={"PUT"})
+     * @Route("/updateEvent", name="update_event", methods={"PUT"})
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+
     public function updateEvent(Request $request): Response
     {
         //Get and decode Data from request body
-        $requestParams = $request->getContent();
-        $content = json_decode($requestParams, TRUE);
+        $requestParams =    $request->getContent();
+        $content =          json_decode($requestParams, TRUE);
 
         //Fetch Data in local variables
-        $eventId= $content["eventId"];
-        $startEvent = $content["startEvent"];
-        $endEvent = $content["endEvent"];
-        $status = $content["status"];
-        $description = $content["eventDescription"];
+        $eventId=       $content["eventId"];
+        $startEvent =   $content["startEvent"];
+        $endEvent =     $content["endEvent"];
+        $status =       $content["status"];
+        $description =  $content["eventDescription"];
+
         if (isset($content["idUserInvitation"])) {
             $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($content["idUserInvitation"]);
         } else {
@@ -281,11 +300,11 @@ class CalendarController extends AbstractController
 
         //Update event object
         try {
-            $event->setStartEvent(new DateTime($startEvent));
-            $event->setEndEvent(new DateTime($endEvent));
-            $event->setStatus($status);
-            $event->setEventDescription($description);
-            $event->setuserInvited($invitation);
+            $event  ->setStartEvent(new DateTime($startEvent))
+                    ->setEndEvent(new DateTime($endEvent))
+                    ->setStatus($status)
+                    ->setEventDescription($description)
+                    ->setuserInvited($invitation);
         }
         catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
@@ -302,8 +321,8 @@ class CalendarController extends AbstractController
 
         //Persistence
         try {
-            $em->persist($event);
-            $em->flush();
+            $em ->persist($event)
+                ->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         }
         catch (\Exception $e) {
@@ -312,15 +331,18 @@ class CalendarController extends AbstractController
         return $response;
     }
 
-    /* ------------*/
-    /* ---DELETE---*/
-    /* ------------*/
+    // *******************************************************************************************************
+    // *****************************************   DELETE   **************************************************
+    // *******************************************************************************************************
+
+    /*---------------------------------      DELETE AN EVENT (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/delete_event", name="delete_event", methods={"DELETE"})
+     * @Route("/deleteEvent", name="delete_event", methods={"DELETE"})
      * @param Request $request
      * @return Response
      */
+    
     public function deleteEvent(Request $request): Response
     {
         //Get Entity Manager and prepare response
@@ -339,8 +361,8 @@ class CalendarController extends AbstractController
 
         //Remove object
         try {
-            $em->remove($event);
-            $em->flush();
+            $em ->remove($event)
+                ->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
