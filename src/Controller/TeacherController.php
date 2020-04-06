@@ -47,7 +47,7 @@ class TeacherController extends AbstractController
         foreach ($teacherstudent as $value) {
             $studentdatas[$value->getuserInvited()->getId()] = [
                 'firstname' => $value->getuserInvited()->getFirstname(),
-                'lastname' => $value->getuserInvited()->getLastname()
+                'lastname'  => $value->getuserInvited()->getLastname()
             ];
         }
         $response = new Response(json_encode($studentdatas));
