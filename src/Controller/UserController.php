@@ -43,7 +43,7 @@ class UserController extends AbstractController
     /*---------------------------------      GET ALL USERS (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/list_users", name="api_users_list", methods={"GET"})
+     * @Route("/getAllUser", name="api_users_list", methods={"GET"})
      * @IsGranted("ROLE_ADMIN")
      */
     public function getAllUser(): Response
@@ -71,7 +71,7 @@ class UserController extends AbstractController
     /*---------------------------------      GET USER BY ID (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/show_user", name="api_user_show", methods={"GET"})
+     * @Route("/getUserByID", name="api_user_show", methods={"GET"})
      * @IsGranted("ROLE_ADMIN")
      */
     public function getUserByID(Request $request): Response
@@ -98,7 +98,7 @@ class UserController extends AbstractController
     /*---------------------------------      GET CURRENT USER (USER)     -------------------------------------*/
 
     /**
-     * @Route("/show_currentUser", name="api_user_show", methods={"GET"})
+     * @Route("/getCurrentUser", name="api_user_show", methods={"GET"})
      * @IsGranted("ROLE_USER")
      */
     public function getCurrentUser(UserInterface $currentUser, Request $request): Response
@@ -126,7 +126,7 @@ class UserController extends AbstractController
     /*---------------------------------      POST A NEW USER (ADMIN)     -----------------------------------*/
 
     /**
-     * @Route("/create_user", name="api_user_createUser", methods={"POST"})
+     * @Route("/createUser", name="api_user_createUser", methods={"POST"})
      * @IsGranted("ROLE_ADMIN")
      */
     public function createUser(Request $request): Response
@@ -184,7 +184,7 @@ class UserController extends AbstractController
     /*---------------------------------      PUT ANY USER (ADMIN)     --------------------------------------*/
 
     /**
-     * @Route("/update_user", name="update_user", methods={"PUT"})
+     * @Route("/updateUser", name="update_user", methods={"PUT"})
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @return Response
@@ -246,7 +246,7 @@ class UserController extends AbstractController
     /*---------------------------------      PUT CURRENT USER (USER)     -------------------------------------*/
 
     /**
-    * @Route("/update_currentUser", name="currentuser", methods={"PUT"})
+    * @Route("/updateCurrentUser", name="currentuser", methods={"PUT"})
     * @IsGranted("ROLE_USER")
     * @param UserInterface $currentUser
     * @return Response
@@ -304,7 +304,7 @@ class UserController extends AbstractController
     /*---------------------------------      DELETE USER BY ID (ADMIN)     ---------------------------------*/
 
     /**
-     * @Route("/delete_user", name="api_user_deleteUser", methods={"DELETE"})
+     * @Route("/deleteUser", name="api_user_deleteUser", methods={"DELETE"})
      * @IsGranted("ROLE_ADMIN")
      * @param UserInterface $currentUser
      * @return Response
