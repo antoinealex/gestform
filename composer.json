@@ -25,7 +25,6 @@
         "symfony/yaml": "4.4.*"
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "^3.3",
         "symfony/web-server-bundle": "4.4.*"
     },
     "config": {
