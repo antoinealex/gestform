@@ -144,7 +144,7 @@ class CommentsController extends AbstractController
 
 
         //Get the event from DBAL
-        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($userId);
+        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
 
         //Get Entity Manager
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
