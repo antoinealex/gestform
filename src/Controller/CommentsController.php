@@ -106,8 +106,8 @@ class CommentsController extends AbstractController
 
         // On persist l'object = on l'écris dans la BDD
         try {
-            $em ->persist($comment)
-                ->flush();
+            $em->persist($comment);
+            $em->flush();
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => "erreur 2"]));
             return $response;
@@ -163,8 +163,8 @@ class CommentsController extends AbstractController
 
         //Persistence
         try {
-            $em ->persist($comment)
-                ->flush();
+            $em->persist($comment);
+            $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 2"]));
@@ -201,8 +201,8 @@ class CommentsController extends AbstractController
 
         //Remove object
         try {
-            $em ->remove($Comment)
-                ->flush();
+            $em->remove($Comment);
+            $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => "error 2"]));

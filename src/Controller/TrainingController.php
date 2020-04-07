@@ -121,8 +121,8 @@ class TrainingController extends AbstractController
 
         // On persist l'object = on l'écris dans la BDD
         try {
-            $em ->persist($training)
-                ->flush();
+            $em->persist($training);
+            $em->flush();
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
@@ -183,8 +183,8 @@ class TrainingController extends AbstractController
 
         //Persistence
         try {
-            $em ->persist($training)
-                ->flush();
+            $em->persist($training);
+            $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
@@ -221,8 +221,8 @@ class TrainingController extends AbstractController
 
         //Remove object
         try {
-            $em ->remove($training)
-                ->flush();
+            $em->remove($training);
+            $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));

@@ -168,8 +168,8 @@ class CalendarController extends AbstractController
 
         //Persistence
         try {
-            $em ->persist($event)
-                ->flush();
+            $em->persist($event);
+            $em->flush();
         }
         catch (\Exception $e) {
             $response   ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
@@ -243,8 +243,8 @@ class CalendarController extends AbstractController
 
         //Persistence
         try {
-            $em ->persist($event)
-                ->flush();
+            $em->persist($event);
+            $em->flush();
         }
         catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
@@ -321,8 +321,8 @@ class CalendarController extends AbstractController
 
         //Persistence
         try {
-            $em ->persist($event)
-                ->flush();
+            $em->persist($event);
+            $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         }
         catch (\Exception $e) {
@@ -361,8 +361,8 @@ class CalendarController extends AbstractController
 
         //Remove object
         try {
-            $em ->remove($event)
-                ->flush();
+            $em->remove($event);
+            $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
