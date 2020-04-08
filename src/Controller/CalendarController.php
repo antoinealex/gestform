@@ -3,14 +3,15 @@
 namespace App\Controller;
 
 use DateTime;
+use App\Entity\User;
+use App\Entity\CalendarEvent;
+use OpenApi\Annotations as OA;
 use Doctrine\ORM\NonUniqueResultException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use OpenApi\Annotations as OA;
-use App\Entity\CalendarEvent;
-use App\Entity\User;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 /**
  * @Route("/calendar", name="gestform_calendar")
