@@ -320,7 +320,7 @@ class UserController extends AbstractController
         // On récupère l'objet à supprimer dans la base de données
         $user = new User();
         try {
-            $user = $em->getRepository(User::class)->findOneByID($request->request->get("id"));
+            $user = $em->getRepository(User::class)->findOneByID($request->query->get("id"));
         } catch (NonUniqueResultException $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }

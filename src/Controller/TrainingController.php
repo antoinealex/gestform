@@ -29,11 +29,11 @@ class TrainingController extends AbstractController
 // *****************************************   GET   *****************************************************
 // *******************************************************************************************************
 
-/*---------------------------------      GET ALL TRAINING (ADMIN)     -------------------------------------*/
+/*---------------------------------      GET ALL TRAINING    -------------------------------------*/
 
     /**
      * @Route("/getAllTraining", name="training", methods={"GET"})
-     * 
+     * @IsGranted("ROLE_TEACHER")
      */
     public function getAllTraining(TrainingRepository $allTraining, SerializerInterface $serializer)
     {
@@ -48,10 +48,11 @@ class TrainingController extends AbstractController
         return new JsonResponse($resultat, 200, [], true);
     }
 
-/*---------------------------------      GET TRAINING BY ID(ADMIN)     -------------------------------------*/
+/*---------------------------------      GET TRAINING BY ID     -------------------------------------*/
 
     /**
      * @Route("/getTrainingById", name="training_id", methods={"GET"})
+     * @IsGranted("ROLE_TEACHER")
      */
     public function getTrainingById(Request $request, SerializerInterface $serializer)
     {
@@ -72,15 +73,17 @@ class TrainingController extends AbstractController
 // *****************************************   POST   ****************************************************
 // *******************************************************************************************************
 
-/*---------------------------------      POST A NEW TRAINING(ADMIN)     -------------------------------------*/
+/*---------------------------------      POST A NEW TRAINING     -------------------------------------*/
 
     /**
      * @Route("/addTraining", name="add_training", methods={"POST"})
+     * @IsGranted("ROLE_TEACHER")
      */
     public function addTraining(Request $request): Response
     {
+
         // On prend l'id du teacherUser
-        $teacher = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("teacher_id"));
+        $teacher = $this->getDoctrine()->getRepository(User::class)->findOneById((int)$request->request->get("teacher_id"));
 
         // On prend toutes les données envoyés en POST
         $start_training =       $request->request->get("start_training");
@@ -88,7 +91,7 @@ class TrainingController extends AbstractController
         $max_student =          $request->request->get("max_student");
         $price_per_student =    $request->request->get("price_per_student");
         $training_description = $request->request->get("training_description");
-        $subject =$request->request->get("subject");
+        $subject =              $request->request->get("subject");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Training::class);
@@ -102,13 +105,11 @@ class TrainingController extends AbstractController
                 $training->setStartTraining(new DateTime($start_training));
             }else {
                 $response->setContent(json_encode(["success" => FALSE]));
-                exit();
             }
             if (strtotime($end_training) >= strtotime($start_training)) {
                 $training->setEndTraining(new DateTime($end_training));
             }else {
                 $response->setContent(json_encode(["success" => FALSE]));
-                exit();
             }
             $training   ->setMaxStudent((int)$max_student)
                         ->setPricePerStudent($price_per_student)
@@ -137,10 +138,11 @@ class TrainingController extends AbstractController
 // *****************************************   PUT   ****************************************************
 // ******************************************************************************************************
 
-/*---------------------------------      POST A NEW TRAINING(ADMIN)     -------------------------------*/
+/*---------------------------------      UPDATE A TRAINING     -------------------------------*/
 
     /**
      * @Route("/updateTraining", name="update_training", methods={"PUT"})
+     * @IsGranted("ROLE_TEACHER")
      */
     public function updateTraining(Request $request): Response
     {
@@ -197,10 +199,11 @@ class TrainingController extends AbstractController
 // *****************************************   DELETE   *************************************************
 // ******************************************************************************************************
 
-/*---------------------------------      DELETE TRAINING (ADMIN)     ------------------------------*/
+/*---------------------------------      DELETE TRAINING      ------------------------------*/
 
     /**
      * @Route("/deleteTraining", name="delete_training", methods={"DELETE"})
+     * @IsGranted("ROLE_TEACHER")
      */
     public function deleteTraining(Request $request): Response
     {

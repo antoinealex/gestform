@@ -27,6 +27,7 @@ class CalendarController extends AbstractController
 
     /**
      * @Route("/getUserEvents", name="user", methods={"GET"})
+     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      */
@@ -67,6 +68,7 @@ class CalendarController extends AbstractController
 
     /**
      * @Route("/getEventById", name="event", methods={"GET"})
+     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
@@ -112,6 +114,7 @@ class CalendarController extends AbstractController
 
     /**
      * @Route("/newUserEvent", name="new_user_ev", methods={"POST"})
+     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
@@ -183,10 +186,11 @@ class CalendarController extends AbstractController
         return $response;
 	}
 
-    /*---------------------------------      POST A NEW APPOINTEMENT (ADMIN)     -------------------------------------*/
+    /*---------------------------------      POST A NEW APPOINTEMENT     -------------------------------------*/
 
     /**
      * @Route("/newUserAppointment", name="new_user_apt", methods={"POST"})
+     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
@@ -196,7 +200,7 @@ class CalendarController extends AbstractController
 	{
         //Get data from POST request
         try {
-            $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("userID"));
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneById($request->get("userID"));
         }
         catch (\Exception $e)
         {
@@ -260,10 +264,11 @@ class CalendarController extends AbstractController
     // *****************************************   PUT   *****************************************************
     // *******************************************************************************************************
 
-    /*---------------------------------      PUT AN EVENT (ADMIN)     -------------------------------------*/
+    /*---------------------------------      PUT AN EVENT (TEACHER)     -------------------------------------*/
 
     /**
      * @Route("/updateEvent", name="update_event", methods={"PUT"})
+     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
@@ -339,6 +344,7 @@ class CalendarController extends AbstractController
 
     /**
      * @Route("/deleteEvent", name="delete_event", methods={"DELETE"})
+     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      */
