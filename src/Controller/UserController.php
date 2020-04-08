@@ -71,7 +71,7 @@ class UserController extends AbstractController
     /*---------------------------------      GET USER BY ID (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/getUserByID", name="api_user_show", methods={"GET"})
+     * @Route("/getUserByID", name="api_user_show_id", methods={"GET"})
      * @IsGranted("ROLE_ADMIN")
      */
     public function getUserByID(Request $request): Response
@@ -306,7 +306,7 @@ class UserController extends AbstractController
     /**
      * @Route("/deleteUser", name="api_user_deleteUser", methods={"DELETE"})
      * @IsGranted("ROLE_ADMIN")
-     * @param UserInterface $currentUser
+     * @param Request $request
      * @return Response
      */
 

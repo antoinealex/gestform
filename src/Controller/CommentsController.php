@@ -8,6 +8,7 @@ use App\Entity\Comments;
 use App\Repository\CommentsRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -32,18 +33,30 @@ class CommentsController extends AbstractController
 
     /**
      * @Route("/getAllComments", name="comments", methods={"GET"})
-     * 
+     * @IsGranted("ROLE_USER")
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
      */
-    public function getAllComments(CommentsRepository $allComments, SerializerInterface $serializer)
+    public function getAllComments(SerializerInterface $serializer) : JsonResponse
     {
-        $subject = $allComments->findAll(); 
-        $resultat = $serializer->serialize(  
-            $subject,                       
-            'json',                         
-            [
-                'groups'  => ['listComments']
-            ]
-        );
+        $subject = $this->getDoctrine()
+            ->getRepository(Comments::class)->findAll();
+        $resultat=[];
+
+        foreach ($subject as $comments)
+        {
+            $resultat[$comments->getId()] = [
+                "titleComment"  =>  $comments->getTitleComment(),
+                "bodyComment"   =>  $comments->getBodyComment(),
+                "dateComment"   =>  $comments->getDateComment()->format('Y-m-d H:i:s'),
+                "user"          =>  [
+                        "lastname"  =>  $comments->getUser()->getLastname(),
+                        "firstname" =>  $comments->getUser()->getFirstname(),
+                    ]
+            ];
+        }
+        $resultat=json_encode($resultat);
+
         return new JsonResponse($resultat, 200, [], true);
     }
 
@@ -51,9 +64,13 @@ class CommentsController extends AbstractController
 
     /**
      * @Route("/getCommentsById", name="comments_id", methods={"GET"})
+     * @IsGranted("ROLE_USER")
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
      */
 
-    public function getCommentsById(Request $request, SerializerInterface $serializer)
+    public function getCommentsById(Request $request, SerializerInterface $serializer) : JsonResponse
     {
         $commentsId = $request->query->get('id');
         $comments =  $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentsId);
@@ -76,6 +93,10 @@ class CommentsController extends AbstractController
 
     /**
      * @Route("/addComments", name="add_Comments", methods={"POST"})
+     * @IsGranted("ROLE_USER")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
 
     public function addComments(Request $request): Response
@@ -86,7 +107,6 @@ class CommentsController extends AbstractController
         // On prend toutes les données envoyés en POST
         $title_comment =    $request->request->get("title_comment");
         $body_comment =     $request->request->get("body_comment");
-        $date_comment =     $request->request->get("date_comment");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
@@ -100,7 +120,8 @@ class CommentsController extends AbstractController
                         ->setBodyComment($body_comment)
                         ->setDateComment(new DateTime("now"));
         } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
             return $response;
         }
 
@@ -109,7 +130,8 @@ class CommentsController extends AbstractController
             $em->persist($comment);
             $em->flush();
         } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => "erreur 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
             return $response;
         }
 
@@ -126,9 +148,9 @@ class CommentsController extends AbstractController
 
     /**
      * @Route("/updateComment", name="update_comment", methods={"PUT"})
+     * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
 
     public function updateComment(Request $request): Response
@@ -138,7 +160,7 @@ class CommentsController extends AbstractController
         $content =          json_decode($requestParams, TRUE);
 
         //Fetch Data in local variables
-        $userId =       $content["user_id"];
+        $commentId =    $content["comment_id"];
         $titleComment = $content["title_comment"];
         $bodyComment =  $content["body_comment"];        
 
@@ -158,7 +180,8 @@ class CommentsController extends AbstractController
             $comment->setTitleComment($titleComment)
                     ->setBodyComment($bodyComment);
         } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => "error 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         //Persistence
@@ -167,7 +190,8 @@ class CommentsController extends AbstractController
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
         } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => "error 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
         return $response;
     }
@@ -180,6 +204,9 @@ class CommentsController extends AbstractController
 
     /**
      * @Route("/deleteComment", name="delete_Comment", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN")
+     * @param Request $request
+     * @return Response
      */
 
     public function deleteComment(Request $request): Response
@@ -194,18 +221,20 @@ class CommentsController extends AbstractController
         $CommentId = $request->query->get("id");
 
         try {
-            $Comment = $em->getRepository(Comments::class)->findCommentsById($CommentId);
+            $comment = $em->getRepository(Comments::class)->findCommentsById($CommentId);
         } catch (NonUniqueResultException $e) {
-            $response->setContent(json_encode(["success" => "error 1"]));
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
         //Remove object
         try {
-            $em->remove($Comment);
+            $em->remove($comment);
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => "error 2"]));
+            $response->setContent(json_encode(["success" => FALSE]));
         }
         return $response;
     }
