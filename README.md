@@ -4,7 +4,7 @@ This app is in development, **DO NOT USE** !!
 
 VERSION | DATE
 --------|-----------
-0.0.1   | 2020/03/12
+0.1     | 2020/04/08
 
 ## TO DO BEFORE CODING ##
 1. Create an .env.local file in the root directory of the app (here !) and set the database access config with the following line (for a mysql db) :
