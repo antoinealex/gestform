@@ -5,7 +5,6 @@ namespace App\Controller;
 use DateTime;
 use App\Entity\User;
 use App\Entity\CalendarEvent;
-use OpenApi\Annotations as OA;
 use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
