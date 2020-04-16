@@ -79,6 +79,9 @@ class TrainingController extends AbstractController
     /**
      * @Route("/addTraining", name="add_training", methods={"POST"})
      * @IsGranted("ROLE_TEACHER")
+     * @param Request $request
+     * @return Response
+     * @throws NonUniqueResultException
      */
     public function addTraining(Request $request): Response
     {

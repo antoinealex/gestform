@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -144,63 +145,12 @@ class CommentsController extends AbstractController
 // *****************************************   PUT   *****************************************************
 // *******************************************************************************************************
 
-    /*---------------------------------      PUT ANY COMMENT (ADMIN)   -------------------------------------*/
-
-    /**
-     * @Route("/updateComment", name="update_comment", methods={"PUT"})
-     * @IsGranted("ROLE_ADMIN")
-     * @param Request $request
-     * @return Response
-     */
-
-    public function updateComment(Request $request): Response
-    {
-        //Get and decode Data from request body
-        $requestParams =    $request->getContent();
-        $content =          json_decode($requestParams, TRUE);
-
-        //Fetch Data in local variables
-        $commentId =    $content["comment_id"];
-        $titleComment = $content["title_comment"];
-        $bodyComment =  $content["body_comment"];        
-
-
-        //Get the event from DBAL
-        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
-
-        //Get Entity Manager
-        $em = $this->getDoctrine()->getManagerForClass(Comments::class);
-
-        //Prepare HTTP Response
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-
-        //Update event object
-        try {
-            $comment->setTitleComment($titleComment)
-                    ->setBodyComment($bodyComment);
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        //Persistence
-        try {
-            $em->persist($comment);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-        return $response;
-    }
-
     /*---------------------------------      PUT OWN COMMENT (USER)   -------------------------------------*/
 
     /**
      * @Route("/updateCurrentUserComment", name="update_current_user_comment", methods={"PUT"})
      * @IsGranted("ROLE_USER")
+     * @param UserInterface $currentUser
      * @param Request $request
      * @return Response
      */
@@ -258,45 +208,6 @@ class CommentsController extends AbstractController
 // *******************************************************************************************************
 // *****************************************   DELETE   **************************************************
 // *******************************************************************************************************
-
-    /*---------------------------------      DELETE ANY COMMENT      -------------------------------------*/
-
-    /**
-     * @Route("/deleteComment", name="delete_Comment", methods={"DELETE"})
-     * @IsGranted("ROLE_ADMIN")
-     * @param Request $request
-     * @return Response
-     */
-
-    public function deleteComment(Request $request): Response
-    {
-        //Get Entity Manager and prepare response
-        $em = $this->getDoctrine()->getManagerForClass(Comments::class);
-
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-
-        //Get training object to delete
-        $CommentId = $request->query->get("id");
-
-        try {
-            $comment = $em->getRepository(Comments::class)->findCommentsById($CommentId);
-        } catch (NonUniqueResultException $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
-        }
-
-        //Remove object
-        try {
-            $em->remove($comment);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-        return $response;
-    }
 
     /*---------------------------------      DELETE OWN COMMENT (USER)     -------------------------------------*/
 
