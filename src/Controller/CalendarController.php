@@ -31,11 +31,10 @@ class CalendarController extends AbstractController
      * @Route("/getCurrentUserEvents", name="current_user_events", methods={"GET"})
      * @IsGranted("ROLE_TEACHER")
      * @param UserInterface $currentUser
-     * @param Request $request
      * @return Response
      */
 
-	public function getCurrentUserEvents(UserInterface $currentUser, Request $request) : Response
+	public function getCurrentUserEvents(UserInterface $currentUser) : Response
 	{
         $userId = $currentUser->getId();
         $events = $this->getDoctrine()->getRepository(CalendarEvent::class)->findByUserID($userId);
@@ -253,77 +252,7 @@ class CalendarController extends AbstractController
     // *****************************************   PUT   *****************************************************
     // *******************************************************************************************************
 
-    /*---------------------------------      PUT ANY EVENT (ADMIN)     -------------------------------------*/
 
-    /**
-     * @Route("/updateEvent", name="update_event", methods={"PUT"})
-     * @IsGranted("ROLE_ADMIN")
-     * @param Request $request
-     * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-
-    public function updateEvent(Request $request): Response
-    {
-        //Get and decode Data from request body
-        $requestParams =    $request->getContent();
-        $content =          json_decode($requestParams, TRUE);
-
-        //Fetch Data in local variables
-        $eventId=       $content["eventId"];
-        $startEvent =   $content["startEvent"];
-        $endEvent =     $content["endEvent"];
-        $status =       $content["status"];
-        $description =  $content["eventDescription"];
-
-        if (isset($content["idUserInvitation"])) {
-            $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($content["idUserInvitation"]);
-        } else {
-            $invitation = NULL;
-        }
-
-        //Get the event from DBAL
-        $event = $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
-
-        //Get Entity Manager
-        $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
-
-        //Prepare HTTP Response
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-
-        //Update event object
-        try {
-            $event  ->setStartEvent(new DateTime($startEvent))
-                    ->setEndEvent(new DateTime($endEvent))
-                    ->setStatus($status)
-                    ->setEventDescription($description)
-                    ->setuserInvited($invitation);
-        }
-        catch (Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-
-        //Check dates coherence
-        if ($startEvent > $endEvent) {
-            return new Response(
-                json_encode(["error"=>"Dates are incoherent"]),
-                Response::HTTP_BAD_REQUEST,
-                ['Content-Type'=>'application/json']
-            );
-        }
-
-        //Persistence
-        try {
-            $em->persist($event);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-        }
-        catch (Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-        return $response;
-    }
 
     /*---------------------------------      PUT OWN EVENT (USER)     -------------------------------------*/
 
@@ -407,42 +336,6 @@ class CalendarController extends AbstractController
     // *******************************************************************************************************
     // *****************************************   DELETE   **************************************************
     // *******************************************************************************************************
-
-    /*---------------------------------      DELETE ANY EVENT (ADMIN)     -------------------------------------*/
-
-    /**
-     * @Route("/deleteEvent", name="delete_event", methods={"DELETE"})
-     * @IsGranted("ROLE_ADMIN")
-     * @param Request $request
-     * @return Response
-     */
-    
-    public function deleteEvent(Request $request): Response
-    {
-        //Get Entity Manager and prepare response
-        $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
-
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
-
-        //Get event object to to delete
-        $eventId = $request->query->get("eventId");
-        try {
-            $event = $em->getRepository(CalendarEvent::class)->findOneByID($eventId);
-        } catch (NonUniqueResultException $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-
-        //Remove object
-        try {
-            $em->remove($event);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-        } catch (Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-        return $response;
-    }
 
     /*---------------------------------      DELETE OWN EVENT (USER)     -------------------------------------*/
 
