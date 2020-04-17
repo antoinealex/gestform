@@ -330,11 +330,82 @@ class AdminController extends AbstractController
         );
     }
 
+    /*---------------------------------      PUT ANY EVENT (ADMIN)     -------------------------------------*/
+
+    /**
+     * @Route("/updateEvent", name="update_event", methods={"PUT"})
+     * @IsGranted("ROLE_ADMIN")
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+
+    public function updateEvent(Request $request): Response
+    {
+        //Get and decode Data from request body
+        $requestParams =    $request->getContent();
+        $content =          json_decode($requestParams, TRUE);
+
+        //Fetch Data in local variables
+        $eventId=       $content["eventId"];
+        $startEvent =   $content["startEvent"];
+        $endEvent =     $content["endEvent"];
+        $status =       $content["status"];
+        $description =  $content["eventDescription"];
+
+        if (isset($content["idUserInvitation"])) {
+            $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($content["idUserInvitation"]);
+        } else {
+            $invitation = NULL;
+        }
+
+        //Get the event from DBAL
+        $event = $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+
+        //Get Entity Manager
+        $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
+
+        //Prepare HTTP Response
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Update event object
+        try {
+            $event  ->setStartEvent(new DateTime($startEvent))
+                ->setEndEvent(new DateTime($endEvent))
+                ->setStatus($status)
+                ->setEventDescription($description)
+                ->setuserInvited($invitation);
+        }
+        catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+
+        //Check dates coherence
+        if ($startEvent > $endEvent) {
+            return new Response(
+                json_encode(["error"=>"Dates are incoherent"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        //Persistence
+        try {
+            $em->persist($event);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        }
+        catch (Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+        }
+        return $response;
+    }
+
     /*---------------------------------      UPDATE A TRAINING     -------------------------------*/
 
     /**
      * @Route("/updateTraining", name="update_training", methods={"PUT"})
-     * @IsGranted("ROLE_TEACHER")
      * @param Request $request
      * @return Response
      */
@@ -388,6 +459,58 @@ class AdminController extends AbstractController
         return $response;
 
     }
+
+    /*---------------------------------      PUT ANY COMMENT (ADMIN)   -------------------------------------*/
+
+    /**
+     * @Route("/updateComment", name="update_comment", methods={"PUT"})
+     * @param Request $request
+     * @return Response
+     */
+
+    public function updateComment(Request $request): Response
+    {
+        //Get and decode Data from request body
+        $requestParams =    $request->getContent();
+        $content =          json_decode($requestParams, TRUE);
+
+        //Fetch Data in local variables
+        $commentId =    $content["comment_id"];
+        $titleComment = $content["title_comment"];
+        $bodyComment =  $content["body_comment"];
+
+
+        //Get the event from DBAL
+        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
+
+        //Get Entity Manager
+        $em = $this->getDoctrine()->getManagerForClass(Comments::class);
+
+        //Prepare HTTP Response
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        //Update event object
+        try {
+            $comment->setTitleComment($titleComment)
+                ->setBodyComment($bodyComment);
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        //Persistence
+        try {
+            $em->persist($comment);
+            $em->flush();
+            $response->setContent(json_encode(["success" => TRUE]));
+        } catch (\Exception $e) {
+            $response->setContent(json_encode(["success" => FALSE]));
+            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+        return $response;
+    }
+
 
     // ******************************************************************************************************
     // *****************************************   DELETE   *************************************************
@@ -464,54 +587,38 @@ class AdminController extends AbstractController
         return $response;
     }
 
-    /*---------------------------------      PUT ANY COMMENT (ADMIN)   -------------------------------------*/
+
+    /*---------------------------------      DELETE ANY EVENT (ADMIN)     -------------------------------------*/
 
     /**
-     * @Route("/updateComment", name="update_comment", methods={"PUT"})
-     * @IsGranted("ROLE_ADMIN")
+     * @Route("/deleteEvent", name="delete_event", methods={"DELETE"})
      * @param Request $request
      * @return Response
      */
 
-    public function updateComment(Request $request): Response
+    public function deleteEvent(Request $request): Response
     {
-        //Get and decode Data from request body
-        $requestParams =    $request->getContent();
-        $content =          json_decode($requestParams, TRUE);
+        //Get Entity Manager and prepare response
+        $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
 
-        //Fetch Data in local variables
-        $commentId =    $content["comment_id"];
-        $titleComment = $content["title_comment"];
-        $bodyComment =  $content["body_comment"];
-
-
-        //Get the event from DBAL
-        $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
-
-        //Get Entity Manager
-        $em = $this->getDoctrine()->getManagerForClass(Comments::class);
-
-        //Prepare HTTP Response
         $response = new Response();
         $response->headers->set('Content-Type', 'application/json');
 
-        //Update event object
+        //Get event object to to delete
+        $eventId = $request->query->get("eventId");
         try {
-            $comment->setTitleComment($titleComment)
-                ->setBodyComment($bodyComment);
-        } catch (\Exception $e) {
+            $event = $em->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        } catch (NonUniqueResultException $e) {
             $response->setContent(json_encode(["success" => FALSE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        //Persistence
+        //Remove object
         try {
-            $em->persist($comment);
+            $em->remove($event);
             $em->flush();
             $response->setContent(json_encode(["success" => TRUE]));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
         return $response;
     }
