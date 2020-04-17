@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -144,16 +145,17 @@ class CommentsController extends AbstractController
 // *****************************************   PUT   *****************************************************
 // *******************************************************************************************************
 
-    /*---------------------------------      PUT A COMMENT    -------------------------------------*/
+    /*---------------------------------      PUT OWN COMMENT (USER)   -------------------------------------*/
 
     /**
-     * @Route("/updateComment", name="update_comment", methods={"PUT"})
-     * @IsGranted("ROLE_ADMIN")
+     * @Route("/updateCurrentUserComment", name="update_current_user_comment", methods={"PUT"})
+     * @IsGranted("ROLE_USER")
+     * @param UserInterface $currentUser
      * @param Request $request
      * @return Response
      */
 
-    public function updateComment(Request $request): Response
+    public function updateCurrentUserComment(UserInterface $currentUser, Request $request): Response
     {
         //Get and decode Data from request body
         $requestParams =    $request->getContent();
@@ -167,49 +169,56 @@ class CommentsController extends AbstractController
 
         //Get the event from DBAL
         $comment = $this->getDoctrine()->getRepository(Comments::class)->findCommentsById($commentId);
+        $commentOwner = $comment->getUser();
 
-        //Get Entity Manager
-        $em = $this->getDoctrine()->getManagerForClass(Comments::class);
+        if($currentUser == $commentOwner){
+            //Get Entity Manager
+            $em = $this->getDoctrine()->getManagerForClass(Comments::class);
 
-        //Prepare HTTP Response
-        $response = new Response();
-        $response->headers->set('Content-Type', 'application/json');
+            //Prepare HTTP Response
+            $response = new Response();
+            $response->headers->set('Content-Type', 'application/json');
 
-        //Update event object
-        try {
-            $comment->setTitleComment($titleComment)
-                    ->setBodyComment($bodyComment);
-        } catch (\Exception $e) {
+            //Update event object
+            try {
+                $comment->setTitleComment($titleComment)
+                        ->setBodyComment($bodyComment);
+            } catch (\Exception $e) {
+                $response->setContent(json_encode(["success" => FALSE]));
+                $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            //Persistence
+            try {
+                $em->persist($comment);
+                $em->flush();
+                $response->setContent(json_encode(["success" => TRUE]));
+            } catch (\Exception $e) {
+                $response->setContent(json_encode(["success" => FALSE]));
+                $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+            return $response;
+        }else{
             $response->setContent(json_encode(["success" => FALSE]));
             $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $response;
         }
-
-        //Persistence
-        try {
-            $em->persist($comment);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-        return $response;
     }
 
 // *******************************************************************************************************
 // *****************************************   DELETE   **************************************************
 // *******************************************************************************************************
 
-    /*---------------------------------      DELETE A COMMENT      -------------------------------------*/
+    /*---------------------------------      DELETE OWN COMMENT (USER)     -------------------------------------*/
 
     /**
-     * @Route("/deleteComment", name="delete_Comment", methods={"DELETE"})
-     * @IsGranted("ROLE_ADMIN")
+     * @Route("/deleteCurrentUserComment", name="delete_current_user_Comment", methods={"DELETE"})
+     * @IsGranted("ROLE_USER")
      * @param Request $request
      * @return Response
      */
 
-    public function deleteComment(Request $request): Response
+    public function deleteCurrentUserComment(UserInterface $currentUser, Request $request): Response
     {
         //Get Entity Manager and prepare response
         $em = $this->getDoctrine()->getManagerForClass(Comments::class);
@@ -227,16 +236,22 @@ class CommentsController extends AbstractController
             $response->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
-        //Remove object
-        try {
-            $em->remove($comment);
-            $em->flush();
-            $response->setContent(json_encode(["success" => TRUE]));
-            $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
-        } catch (\Exception $e) {
-            $response->setContent(json_encode(["success" => FALSE]));
-        }
-        return $response;
-    }
+        $commentOwner = $comment->getUser();
 
+        if($currentUser == $commentOwner){
+            //Remove object
+            try {
+                $em->remove($comment);
+                $em->flush();
+                $response->setContent(json_encode(["success" => TRUE]));
+                $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
+            } catch (\Exception $e) {
+                $response->setContent(json_encode(["success" => FALSE]));
+            }
+            return $response;
+        }else{
+            $response->setContent(json_encode(["success" => FALSE]));
+            return $response;
+        }
+    }
 }
