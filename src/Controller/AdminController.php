@@ -8,7 +8,6 @@ use App\Entity\Training;
 use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
-use Monolog\Handler\HandlerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,15 +24,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class AdminController extends AbstractController
 {
 
-    /**
-     * @var HandlerInterface
-     */
-    private $logger; //Logger object to call Monolog Handler
-
-    public function __construct() {
-        $logger = $this->get('logger');
-    }
-
     // *******************************************************************************************************
     // *****************************************   GET   *****************************************************
     // *******************************************************************************************************
@@ -49,20 +39,26 @@ class AdminController extends AbstractController
             $users = $this->getDoctrine()->getRepository(User::class)->findAll();
         } catch (\Exception $e)
         {
-            $this->logger->handle($e->getTrace());
+            return new Response(
+                json_encode(["error"=>$e->getMessage()]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );
         }
 
 
         $responseContent = [];
         foreach ($users as $user) {
             $responseContent[$user->getId()] = [
+                'id'        => $user->getId(),
                 'email'     => $user->getEmail(),
                 'roles'     => $user->getRoles(),
                 'lastname'  => $user->getLastname(),
                 'firstname' => $user->getFirstname(),
                 'phone'     => $user->getPhone(),
                 'address'   => $user->getAddress(),
-                'postcode'  => $user->getCity()
+                'postcode'  => $user->getPostcode(),
+                'city'      => $user->getCity()
             ];
         }
 
@@ -77,7 +73,6 @@ class AdminController extends AbstractController
      * @Route("/getUserByID", name="api_user_show_id", methods={"GET"})
      * @param Request $request
      * @return Response
-     * @throws NonUniqueResultException
      */
     public function getUserByID(Request $request): Response
     {
@@ -85,8 +80,11 @@ class AdminController extends AbstractController
         try {
             $user = $this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
         } catch (NonUniqueResultException $e) {
-            $this->logger->handle($e->getTrace());
-        }
+            return new Response(
+                json_encode(["error"=>$e->getMessage()]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );        }
 
 
         $responseContent = [
@@ -111,7 +109,6 @@ class AdminController extends AbstractController
      * @Route("/getAnyEventById", name="any_event", methods={"GET"})
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
 
     public function getAnyEventById(Request $request) : Response
@@ -120,12 +117,14 @@ class AdminController extends AbstractController
         try {
             $event =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
         } catch (NonUniqueResultException $e) {
-            $this->logger->handle($e->getTrace());
-        }
+            return new Response(
+                json_encode(["error"=>$e->getMessage()]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );        }
 
 
         if (!$event) {
-            $this->logger->handle(["error"=>"Event not found", "query"=>$eventId]);
             return new Response(
                 json_encode(["error"=>"Event not found"]),
                 Response::HTTP_BAD_REQUEST,
@@ -175,6 +174,7 @@ class AdminController extends AbstractController
         $responseContent = [];
         foreach($events as $event){
             $responseContent[$event->getId()] = [
+                "id"            => $event->getId(),
                 "user"          => $event->getuser()->getId(),
                 "startEvent"    => $event->getStartEvent()->format('Y-m-d H:i:s'),
                 "endEvent"      => $event->getEndEvent()->format('Y-m-d H:i:s'),

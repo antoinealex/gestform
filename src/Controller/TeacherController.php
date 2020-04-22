@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @Route("/teacher", name="gestform_teacher")
@@ -67,6 +68,39 @@ class TeacherController extends AbstractController
 
         return new Response(
             json_encode($responseContent),
+            Response::HTTP_OK,
+            ['Content-Type'=>'application/json']
+        );
+    }
+
+    /*------------------------------      GET ALL TEACHER'S STUDENTS     -----------------------------------*/
+
+    /**
+     * Retrieve an array of all students for the current teacher.
+     * @Route("/getAllStudent", name="all_students_teacher", methods={"GET"})
+     * @param UserInterface $teacher Dependency injected by Symfony, current teacher should be retrieve.
+     * @param SerializerInterface $serializer
+     * @param Request $request Incomming HTTP Request. Passed by the Symfony Routing Service.
+     * @return Response Return an application/json response to the client.
+     */
+    public function getAllStudents(UserInterface $teacher, SerializerInterface $serializer, Request $request) : Response {
+        $trainings = $teacher->getTeacherTrainings();
+
+        foreach ($trainings as $train) {
+            $participants[] = $serializer->normalize(
+                $train->getParticipants(),
+                null,
+                [
+                    'groups'  => 'listUserSimple'
+                ]
+            );
+        }
+
+
+        $responseContent = json_encode($participants[0]);
+
+        return new Response(
+            $responseContent,
             Response::HTTP_OK,
             ['Content-Type'=>'application/json']
         );

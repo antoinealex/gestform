@@ -72,11 +72,12 @@ class UserController extends AbstractController
     /*---------------------------------      PUT CURRENT USER (USER)     -------------------------------------*/
 
     /**
-    * @Route("/updateCurrentUser", name="currentuser", methods={"PUT"})
-    * @IsGranted("ROLE_USER")
-    * @param UserInterface $currentUser
-    * @return Response
-    */
+     * @Route("/updateCurrentUser", name="currentuser", methods={"PUT"})
+     * @IsGranted("ROLE_USER")
+     * @param UserInterface $currentUser
+     * @param Request $request
+     * @return Response
+     */
 
     public function updateCurrentUser(UserInterface $currentUser, Request $request): Response
     {
