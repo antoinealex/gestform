@@ -8,6 +8,7 @@ use App\Entity\Training;
 use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\NonUniqueResultException;
+use Monolog\Handler\HandlerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +25,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class AdminController extends AbstractController
 {
 
+    /**
+     * @var HandlerInterface
+     */
+    private $logger; //Logger object to call Monolog Handler
+
+    public function __construct() {
+        $logger = $this->get('logger');
+    }
+
     // *******************************************************************************************************
     // *****************************************   GET   *****************************************************
     // *******************************************************************************************************
@@ -35,7 +45,13 @@ class AdminController extends AbstractController
      */
     public function getAllUser(): Response
     {
-        $users = $this->getDoctrine()->getRepository(User::class)->findAll();
+        try {
+            $users = $this->getDoctrine()->getRepository(User::class)->findAll();
+        } catch (\Exception $e)
+        {
+            $this->logger->handle($e->getTrace());
+        }
+
 
         $responseContent = [];
         foreach ($users as $user) {
@@ -66,7 +82,12 @@ class AdminController extends AbstractController
     public function getUserByID(Request $request): Response
     {
         $userId = $request->query->get('id');
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
+        try {
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneByID($userId);
+        } catch (NonUniqueResultException $e) {
+            $this->logger->handle($e->getTrace());
+        }
+
 
         $responseContent = [
             'email'     => $user->getEmail(),
@@ -96,8 +117,15 @@ class AdminController extends AbstractController
     public function getAnyEventById(Request $request) : Response
     {
         $eventId = $request->query->get('id');
-        $event =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        try {
+            $event =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        } catch (NonUniqueResultException $e) {
+            $this->logger->handle($e->getTrace());
+        }
+
+
         if (!$event) {
+            $this->logger->handle(["error"=>"Event not found", "query"=>$eventId]);
             return new Response(
                 json_encode(["error"=>"Event not found"]),
                 Response::HTTP_BAD_REQUEST,
@@ -205,7 +233,7 @@ class AdminController extends AbstractController
                 ->setAddress($address)
                 ->setPostcode($postcode)
                 ->setCity($city);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }
@@ -214,7 +242,7 @@ class AdminController extends AbstractController
         try {
             $em->persist($user);
             $em->flush();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
         }

@@ -102,6 +102,12 @@
             "./config/packages/lexik_jwt_authentication.yaml"
         ]
     },
+    "markbaker/complex": {
+        "version": "1.4.8"
+    },
+    "markbaker/matrix": {
+        "version": "1.2.0"
+    },
     "monolog/monolog": {
         "version": "1.25.3"
     },
@@ -137,6 +143,9 @@
     },
     "psr/log": {
         "version": "1.1.2"
+    },
+    "psr/simple-cache": {
+        "version": "1.0.1"
     },
     "sensio/framework-extra-bundle": {
         "version": "5.2",
@@ -400,6 +409,9 @@
     },
     "symfony/yaml": {
         "version": "v4.4.5"
+    },
+    "tecnickcom/tcpdf": {
+        "version": "6.3.5"
     },
     "twig/twig": {
         "version": "v3.0.3"

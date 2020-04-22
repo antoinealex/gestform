@@ -124,8 +124,8 @@ class CalendarController extends AbstractController
      * @Route("/newUserEvent", name="new_user_ev", methods={"POST"})
      * @IsGranted("ROLE_TEACHER")
      * @param Request $request
+     * @param UserInterface $user
      * @return Response
-     * @throws Exception
      */
 
 	public function newUserEvent(Request $request, UserInterface $user) : Response
@@ -259,9 +259,10 @@ class CalendarController extends AbstractController
     /**
      * @Route("/updateCurrentUserEvent", name="update_current_user_event", methods={"PUT"})
      * @IsGranted("ROLE_USER")
+     * @param UserInterface $currentUser
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
      */
 
     public function updateCurrentUserEvent(UserInterface $currentUser, Request $request): Response

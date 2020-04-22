@@ -94,7 +94,7 @@ class TeacherController extends AbstractController
         //Fetch Data in local variables
         $trainingId             =   $content["id"];
         $teacherId              =   $currentUser->getId();
-        $start_training         =   $content["startTtraining"];
+        $start_training         =   $content["startTraining"];
         $end_training           =   $content["endTraining"];
         $max_student            =   $content["maxStudent"];
         $price_per_student      =   $content["pricePerStudent"];
