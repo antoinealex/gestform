@@ -5,10 +5,7 @@ namespace App\Controller;
 
 
 use App\Entity\User;
-use App\Kernel;
-use App\Service\PDFExporter;
-use Composer\DependencyResolver\Request;
-
+use App\Util\ExportInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,10 +14,10 @@ class ExportController extends AbstractController
 {
     /**
      * @Route("/testpdf", name="test_exportPDF", methods={"GET"})
-     * @param PDFExporter $exporter
+     * @param ExportInterface $pdfExporter
      * @return Response
      */
-    public function testPDF(PDFExporter $exporter)
+    public function testPDF(ExportInterface $pdfExporter)
     {
         $users = $this->getDoctrine()->getRepository(User::class)->findAll();
 
@@ -41,11 +38,11 @@ class ExportController extends AbstractController
             "Firstname",
             "Roles"
         ];
-        $exporter->setDocumentInformation('P', "test");
+        $pdfExporter->setDocumentInformation('P', "test");
         $date = new \DateTime();
-        $exporter->exportTable($exportContent, $tableHead);
+        $pdfExporter->exportTable($exportContent, $tableHead);
         return new Response(
-            json_encode($exporter->save("export_".$date->getTimestamp().".pdf")),
+            json_encode($pdfExporter->save("export_".$date->getTimestamp().".pdf")),
             Response::HTTP_OK,
             ["Content-Type"=>"application/json"]
         );

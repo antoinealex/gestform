@@ -34,7 +34,6 @@ class TrainingController extends AbstractController
 
     /**
      * @Route("/getAllTraining", name="training", methods={"GET"})
-     * @IsGranted("ROLE_TEACHER")
      */
     public function getAllTraining(TrainingRepository $allTraining, SerializerInterface $serializer)
     {
