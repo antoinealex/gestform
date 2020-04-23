@@ -29,7 +29,7 @@ security:
             #provider: app_user_provider
 
             logout:
-                path: /logout
+                path: /security/logout
                 # where to redirect after logout
                 target: /
                 invalidate_session: true
