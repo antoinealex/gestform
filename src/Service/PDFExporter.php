@@ -54,11 +54,9 @@ class PDFExporter implements ExportInterface
     /**
      * Save the created PDF Document in a directory
      * @param String $filename the name of the PDF file to create
-     * @return String
      */
-    public function save(String $filename) : String {
+    public function save(String $filename) {
         $this->document->Output($this->rootPath."/public/tmp/".$filename, "F");
-        return $this->rootPath."/public/tmp/".$filename;
     }
 
     public function exportTable(Array $tableContent, Array $tableHead = [null]) {
@@ -72,7 +70,7 @@ class PDFExporter implements ExportInterface
             $tbl .= '<thead><tr>';
 
             foreach ($tableHead as $cell) {
-                $tbl .= '<th>'.$cell.'</th>';
+                $tbl .= '<th><strong>'.$cell.'</strong></th>';
             }
             $tbl.= '</tr></thead>';
         }

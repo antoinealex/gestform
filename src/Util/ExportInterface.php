@@ -21,5 +21,5 @@ interface ExportInterface
      * @param String $filename Name of the file to be exported.
      * @return String Path of the exported file on server. Does not include FQDN.
      */
-    public function save(String $filename) : String;
+    public function save(String $filename);
 }
