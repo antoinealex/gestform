@@ -24,6 +24,49 @@ use App\Repository\CalendarEventRepository;
 
 class StudentController extends AbstractController
 {
+    /*---------------------------------      GET TRAINING BY ID     -------------------------------------*/
+
+    /**
+     * @Route("/getTrainingById", name="training_id", methods={"GET"})
+     * @param Request $request
+     * @return Response
+     */
+    public function getTrainingById(Request $request) : Response
+    {
+        $trainingId = $request->query->get('id');
+        $training =  $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
+
+        //Return 404 if training can't be found
+        if (!$training) {
+            return new Response(
+                json_encode(["error"=>"Training can't be found"]),
+                Response::HTTP_NOT_FOUND,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        //Serialize the data
+
+        $resultat = json_encode(
+          [
+              "id"              =>  $training->getId(),
+              "startTraining"   =>  $training->getStartTraining(),
+              "endTraining"     =>  $training->getEndTraining(),
+              "description"     =>  $training->getTrainingDescription(),
+              "teacher"         =>  [
+                                        "lastname"  =>  $training->getTeacher()->getLastname(),
+                                        "firstname" =>  $training->getTeacher()->getFirstname()
+                                    ],
+              "subject"         =>  $training->getSubject()
+          ]  
+        );
+        return new Response(
+            $resultat,
+            Response::HTTP_OK,
+            ['Content-Type'=>'application/json']
+        );
+    }
+    
     // ******************************************************************************************************
     // *****************************************   PUT   ****************************************************
     // ******************************************************************************************************

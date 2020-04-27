@@ -28,9 +28,11 @@ class ExportsController extends AbstractController
     /**
      * @Route("/getTrainingStudents/pdf", name="exports_to_PDF", methods={"GET"})
      * @param ExportInterface $pdfExporter
+     * @param UserInterface $currentUser
+     * @param Request $request
      * @return Response
      */
-    public function testPDF(ExportInterface $pdfExporter)
+    public function getTrainingStudentsPDF(ExportInterface $pdfExporter, UserInterface $currentUser, Request $request)
     {
         $users = $this->getDoctrine()->getRepository(User::class)->findAll();
 
@@ -52,13 +54,17 @@ class ExportsController extends AbstractController
             "First Name",
             "Roles"
         ];
-        $pdfExporter->setDocumentInformation('P', "test");
+
+        $title = "Liste des élèves du cours de ".$training->getSubject()." ayant lieu du ".$training->getStartTraining()->format("d/m/Y")." au ".$training->getEndTraining()->format("d/m/Y");
+        $pdfExporter->setDocumentInformation('P', $title);
         $date = new \DateTime();
+        $filename = "export_".$date->getTimestamp().".pdf";
         $pdfExporter->exportTable($exportContent, $tableHead);
+        $pdfExporter->save($filename);
         return new Response(
-            json_encode($pdfExporter->save("export_".$date->getTimestamp().".pdf")),
+            json_encode(["filename" => $filename]),
             Response::HTTP_OK,
-            ["Content-Type"=>"application/json"]
+            ["Content-Type"=>'application/json']
         );
     }
 

@@ -96,8 +96,13 @@ class TeacherController extends AbstractController
             );
         }
 
-
-        $responseContent = json_encode($participants[0]);
+        foreach ($participants as $level1) {
+            foreach ($level1 as $level2)  {
+                $res[] = $level2;
+            }
+        }
+        $participants=$res;
+        $responseContent = json_encode($participants, JSON_FORCE_OBJECT);
 
         return new Response(
             $responseContent,
