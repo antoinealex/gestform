@@ -129,6 +129,9 @@
     "phpdocumentor/type-resolver": {
         "version": "1.1.0"
     },
+    "phpoffice/phpspreadsheet": {
+        "version": "1.11.0"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
