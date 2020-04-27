@@ -129,6 +129,9 @@
     "phpdocumentor/type-resolver": {
         "version": "1.1.0"
     },
+    "phpoffice/phpspreadsheet": {
+        "version": "1.11.0"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
@@ -400,6 +403,9 @@
     },
     "symfony/yaml": {
         "version": "v4.4.5"
+    },
+    "tecnickcom/tcpdf": {
+        "version": "6.3.5"
     },
     "twig/twig": {
         "version": "v3.0.3"

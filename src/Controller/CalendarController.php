@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Entity\CalendarEvent;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -49,6 +50,7 @@ class CalendarController extends AbstractController
         $responseContent = [];
         foreach($events as $event){
             $responseContent[$event->getId()] = [
+                "id"            => $event->getId(),
                 "user"          => $event->getuser()->getId(),
                 "startEvent"    => $event->getStartEvent()->format('Y-m-d H:i:s'),
                 "endEvent"      => $event->getEndEvent()->format('Y-m-d H:i:s'),
@@ -74,13 +76,21 @@ class CalendarController extends AbstractController
      * @param Request $request
      * @param UserInterface $currentUser
      * @return Response
-     * @throws NonUniqueResultException
      */
 
 	public function getEventById(Request $request, UserInterface $currentUser) : Response
 	{
         $eventId = $request->query->get('id');
-        $event =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        try {
+            $event =  $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        } catch (NonUniqueResultException $e) {
+            return new Response(
+                json_encode(["error"=>$e->getMessage()]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
         if (!$event) {
             return new Response(
                 json_encode(["error"=>"Event not found"]),
@@ -124,8 +134,8 @@ class CalendarController extends AbstractController
      * @Route("/newUserEvent", name="new_user_ev", methods={"POST"})
      * @IsGranted("ROLE_TEACHER")
      * @param Request $request
+     * @param UserInterface $user
      * @return Response
-     * @throws Exception
      */
 
 	public function newUserEvent(Request $request, UserInterface $user) : Response
@@ -191,7 +201,6 @@ class CalendarController extends AbstractController
      * @param Request $request
      * @param UserInterface $user
      * @return Response
-     * @throws NonUniqueResultException
      */
 
 	public function newUserAppointment(Request $request, UserInterface $user) : Response
@@ -202,7 +211,16 @@ class CalendarController extends AbstractController
         $endEvent =     $request->request->get("endEvent");
         $status =       $request->request->get("status");
         $description =  $request->request->get("eventDescription");
-        $invitation =   $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("idUserInvitation"));
+        try {
+            $invitation =   $this->getDoctrine()->getRepository(User::class)->findOneById($request->request->get("idUserInvitation"));
+        } catch (NonUniqueResultException $e) {
+            return new Response(
+                json_encode(["error"=>$e->getMessage()]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
 
         //Check fields completion
         if (!$startEvent OR !$endEvent OR !$invitation OR ($startEvent > $endEvent)) {
@@ -259,9 +277,9 @@ class CalendarController extends AbstractController
     /**
      * @Route("/updateCurrentUserEvent", name="update_current_user_event", methods={"PUT"})
      * @IsGranted("ROLE_USER")
+     * @param UserInterface $currentUser
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
 
     public function updateCurrentUserEvent(UserInterface $currentUser, Request $request): Response
@@ -278,7 +296,16 @@ class CalendarController extends AbstractController
         $description =  $content["eventDescription"];
 
         if (isset($content["idUserInvitation"])) {
-            $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($content["idUserInvitation"]);
+            try {
+                $invitation = $this->getDoctrine()->getRepository(User::class)->findOneById($content["idUserInvitation"]);
+            } catch (NonUniqueResultException $e) {
+                return new Response(
+                    json_encode(["error"=>"Fields missing or incoherent"]),
+                    Response::HTTP_BAD_REQUEST,
+                    ['Content-Type'=>'application/json']
+                );
+            }
+
         } else {
             $invitation = NULL;
         }
