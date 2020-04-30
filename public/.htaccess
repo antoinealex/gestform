@@ -1,6 +1,6 @@
  <IfModule mod_headers.c>
-
-    Header always set Access-Control-Allow-Origin "http://gestform-front"
+    SetEnvIf Origin "^(.*\.ei-bs\.eu)$" ORIGIN_SUB_DOMAIN=$1
+    Header always set Access-Control-Allow-Origin "%{ORIGIN_SUB_DOMAIN}e" env=ORIGIN_SUB_DOMAIN
     Header always set Access-Control-Allow-Methods "GET, OPTIONS, POST, PUT, PATCH, DELETE"
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
     Header always set Access-Control-Max-Age 3600
