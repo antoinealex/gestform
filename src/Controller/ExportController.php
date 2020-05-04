@@ -8,8 +8,8 @@ use App\Util\ExportInterface;
 use DateTime;
 
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
-//use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-//use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  * @Route("/exports", name="exports")
  */
 
-class ExportsController extends AbstractController
+class ExportController extends AbstractController
 {
 
 /*------------------------------------------------------------------------------------
