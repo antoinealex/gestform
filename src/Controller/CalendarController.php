@@ -26,6 +26,50 @@ class CalendarController extends AbstractController
     // *****************************************   GET   *****************************************************
     // *******************************************************************************************************
 
+    /*---------------------------------      GET CURRENTUSER EVENT FULLCALENDAR(TEACHER)     -------------------------------------*/
+
+    /**
+     * @Route("/getCurrentUserEventsFC", name="current_user", methods={"GET"})
+     * @IsGranted("ROLE_TEACHER")
+     * @param Request $request
+     * @return Response
+     */
+
+	public function getCurrentUserEventsFC(UserInterface $currentUser, Request $request) : Response
+	{
+        $userId = $currentUser->getId();
+        $events = $this->getDoctrine()->getRepository(CalendarEvent::class)->findByUserID($userId);
+        if (!$events) {
+            return new Response(
+                json_encode(["error"=>"User not found or no events to show"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        // Serialization
+        $responseContent = [];
+        foreach($events as $event){
+            $responseContent[] = [
+                "id"            => $event->getId(),
+                "title"         => $event->getStatus(),
+                "start"         => $event->getStartEvent()->format('Y-m-d H:i:s'),
+                "end"           => $event->getEndEvent()->format('Y-m-d H:i:s'),
+                "color"         => "red",
+                "description"   => $event->getEventDescription()
+            ];
+            if ($event->getuserInvited())  {
+                $responseContent[$event->getId()]["invitation"] = $event->getuserInvited()->getId();
+            }
+        }
+
+        // Response
+        $response = new Response(json_encode($responseContent));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+	}
+
+
     /*---------------------------------      GET CURRENTUSER EVENT (TEACHER)     -------------------------------------*/
 
     /**
@@ -128,7 +172,74 @@ class CalendarController extends AbstractController
     // *****************************************   POST   *****************************************************
     // *******************************************************************************************************
 
-    /*-----------------------------------      POST A NEW EVENT     ----------------------------------------*/
+    /*---------------------------------      POST OWN NEW EVENT FULLCALENDAR (TEACHER)     -------------------------------------*/
+
+    /**
+     * @Route("/newCurrentUserEvent", name="new_user_ev", methods={"POST"})
+     * @IsGranted("ROLE_TEACHER")
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Exception
+     */
+
+	public function newCurrentUserEvent(UserInterface $currentUser, Request $request) : Response
+	{
+	    //Get data from POST request
+        $status =       $request->request->get("title");
+        $startEvent =   $request->request->get("start");
+        $endEvent =     $request->request->get("end");
+        $description =  $request->request->get("description");
+
+        //Check fields completion
+        if (!$startEvent OR !$endEvent OR ($startEvent > $endEvent)) {
+            return new Response(
+                json_encode(["error"=>"Fields missing or incoherent"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        //Creation of objects
+        $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+        $event = new CalendarEvent();
+
+        try {
+            //Hydrate new event object
+            $event  ->setuser($currentUser)
+                    ->setStartEvent(new DateTime($startEvent))
+                    ->setEndEvent(new DateTime($endEvent))
+                    ->setStatus($status)
+                    ->setEventDescription($description);
+        }
+        catch (\Exception $e) {
+            $response   ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+                        ->setContent(json_encode(["success" => "erreur 1".$e]));
+            return $response;
+        }
+
+        //Persistence
+        try {
+            $em->persist($event);
+            $em->flush();
+        }
+        catch (\Exception $e) {
+            $response   ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+                        ->setContent(json_encode(["success" => "$e"]));
+            return $response;
+        }
+
+        //Return
+        $response   ->setStatusCode(Response::HTTP_OK)
+                    ->setContent(json_encode(["success" => TRUE]));
+        return $response;
+	}
+
+
+
+    /*-----------------------------------      POST A NEW EVENT (TEACHER)    ----------------------------------------*/
 
     /**
      * @Route("/newUserEvent", name="new_user_ev", methods={"POST"})
@@ -270,7 +381,72 @@ class CalendarController extends AbstractController
     // *****************************************   PUT   *****************************************************
     // *******************************************************************************************************
 
+     /*---------------------------------      PUT OWN EVENT FOR FULLCALENDER WITH DROP AND RESIZE (TEACHER)     -------------------------------------*/
 
+    /**
+     * @Route("/updateCurrentUserEventFC", name="update_current_user_event", methods={"PUT"})
+     * @IsGranted("ROLE_TEACHER")
+     * @param Request $request
+     * @return Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+
+    public function updateCurrentUserEventFC(UserInterface $currentUser, Request $request): Response
+    {
+        //Get and decode Data from request body
+        $requestParams =    $request->getContent();
+        $content =          json_decode($requestParams,TRUE);
+
+        //Fetch Data in local variables
+        $eventId=       $content["id"];
+        $startEvent =   $content["start"];
+        $endEvent =     $content["end"];
+
+        //Get the event from DBAL
+        $event = $this->getDoctrine()->getRepository(CalendarEvent::class)->findOneByID($eventId);
+        $eventOwner = $event->getuser();
+
+        //Get Entity Manager
+        $em = $this->getDoctrine()->getManagerForClass(CalendarEvent::class);
+
+        //Prepare HTTP Response
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+
+        if($currentUser == $eventOwner){
+            //Update event object
+            try {
+                $event  ->setStartEvent(new DateTime($startEvent))
+                        ->setEndEvent(new DateTime($endEvent));
+            }
+            catch (\Exception $e) {
+                $response->setContent(json_encode(["success" => FALSE]));
+            }
+
+            //Check dates coherence
+            if ($startEvent > $endEvent) {
+                return new Response(
+                    json_encode(["error"=>"Dates are incoherent"]),
+                    Response::HTTP_BAD_REQUEST,
+                    ['Content-Type'=>'application/json']
+                );
+            }
+
+            //Persistence
+            try {
+                $em->persist($event);
+                $em->flush();
+                $response->setContent(json_encode(["success" => TRUE]));
+            }
+            catch (\Exception $e) {
+                $response->setContent(json_encode(["success" => FALSE]));
+            }
+            return $response;
+        }else{
+            $response->setContent(json_encode(["success" => FALSE]));
+            return $response;
+        }
+    }
 
     /*---------------------------------      PUT OWN EVENT (USER)     -------------------------------------*/
 

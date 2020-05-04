@@ -30,6 +30,42 @@ class TrainingController extends AbstractController
 // *****************************************   GET   *****************************************************
 // *******************************************************************************************************
 
+/**
+     * @Route("/getAllTrainingFC", name="training_fullcalendar", methods={"GET"})
+     */
+    public function getAllTrainingFC()
+    {
+        try{
+            $trainings = $this->getDoctrine()->getRepository(Training::class)->findAll();
+        }catch(\Exception $e){
+            return new Response(
+                json_encode(["error"=>$e->getMessage()]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        $responseContent = [];
+        foreach($trainings as $training){
+            $responseContent[] = [
+                'id'            =>$training->getId(),
+                'title'         =>$training->getSubject(),
+                'description'   =>$training->getTrainingDescription(),
+                'start'         =>$training->getStartTraining()->format('Y-m-d H:i:s'),
+                'end'           =>$training->getEndTraining()->format('Y-m-d H:i:s'),
+                'maxStudent'    =>$training->getMaxStudent(),
+                'price'         =>$training->getPricePerStudent(),
+                'participant'   =>$training->getParticipants(),
+                'color'         =>'green',
+            ];
+        }
+
+        $response = new Response(json_encode($responseContent));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+
+
 /*---------------------------------      GET ALL TRAINING    -------------------------------------*/
 
     /**

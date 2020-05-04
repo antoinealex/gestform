@@ -8,6 +8,8 @@ use App\Util\ExportInterface;
 use DateTime;
 
 use PhpOffice\PhpSpreadsheet\Writer\Exception;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
