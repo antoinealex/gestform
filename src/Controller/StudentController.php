@@ -24,6 +24,55 @@ use App\Repository\CalendarEventRepository;
 
 class StudentController extends AbstractController
 {
+
+    // ******************************************************************************************************
+    // *****************************************   GET   ****************************************************
+    // ******************************************************************************************************
+
+
+    /*-------------------------      GET ALL OWN TRAININGS FOR CURRENT STUDENT     -----------------------------*/
+
+    /**
+     * @Route("/getMyTrainings", name="my_trainings_student", methods={"GET"})
+     * @param Request $request
+     * @param UserInterface $currentUser
+     * @return Response
+     */
+
+    public function getMyTrainings(Request $request, UserInterface $currentUser) : Response
+    {
+        //Retrieve current teacher trainings list
+        try {
+            $trainingsList = $currentUser->getStudentTrainings();
+        }
+        catch (\Exception $e) {
+            return new Response(
+                json_encode(["success" => FALSE]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        //Serialization
+        $responseContent = [];
+
+        foreach ($trainingsList as $training) {
+            $responseContent[$training->getId()] = [
+                "startDatetime"     =>  $training->getStartTraining()->format('Y-m-d H:i:s'),
+                "endDatetime"       =>  $training->getEndTraining()->format('Y-m-d H:i:s'),
+                "description"       =>  $training->getTrainingDescription(),
+                "subject"           =>  $training->getSubject()
+            ];
+        }
+
+        return new Response(
+            json_encode($responseContent),
+            Response::HTTP_OK,
+            ['Content-Type'=>'application/json']
+        );
+    }
+
+
     /*---------------------------------      GET TRAINING BY ID     -------------------------------------*/
 
     /**
