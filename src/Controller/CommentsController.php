@@ -47,6 +47,7 @@ class CommentsController extends AbstractController
         foreach ($subject as $comments)
         {
             $resultat[$comments->getId()] = [
+                "id"            =>  $comments->getId(),
                 "titleComment"  =>  $comments->getTitleComment(),
                 "bodyComment"   =>  $comments->getBodyComment(),
                 "dateComment"   =>  $comments->getDateComment()->format('Y-m-d H:i:s'),

@@ -49,6 +49,7 @@ class UserController extends AbstractController
     public function getCurrentUser(UserInterface $currentUser, Request $request): Response
     {
         $responseContent = [
+            'id'        => $currentUser->getId(),
             'email'     => $currentUser->getEmail(),
             'roles'     => $currentUser->getRoles(),
             'lastname'  => $currentUser->getLastname(),
