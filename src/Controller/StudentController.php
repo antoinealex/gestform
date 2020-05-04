@@ -61,7 +61,11 @@ class StudentController extends AbstractController
                 "startDatetime"     =>  $training->getStartTraining()->format('Y-m-d H:i:s'),
                 "endDatetime"       =>  $training->getEndTraining()->format('Y-m-d H:i:s'),
                 "description"       =>  $training->getTrainingDescription(),
-                "subject"           =>  $training->getSubject()
+                "subject"           =>  $training->getSubject(),
+                "teacher"         =>  [
+                    "lastname"  =>  $training->getTeacher()->getLastname(),
+                    "firstname" =>  $training->getTeacher()->getFirstname()
+                ]
             ];
         }
 
