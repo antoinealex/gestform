@@ -30,7 +30,7 @@ class TrainingController extends AbstractController
 // *****************************************   GET   *****************************************************
 // *******************************************************************************************************
 
-/**
+    /**
      * @Route("/getAllTrainingFC", name="training_fullcalendar", methods={"GET"})
      */
     public function getAllTrainingFC()
