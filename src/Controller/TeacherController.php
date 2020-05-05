@@ -28,6 +28,48 @@ class TeacherController extends AbstractController
     // *****************************************   GET   *****************************************************
     // *******************************************************************************************************
 
+    /*------------------------------      GET ALL TEACHER'S STUDENTS     -----------------------------------*/
+
+    /**
+     * @Route("/getCurrentTeacherStudents", name="my_trainings", methods={"GET"})
+     * @param Request $request Incomming HTTP Request. Passed by the Symfony Routing Service.
+     * @param UserInterface $currentUser
+     * @return Response Return an application/json response to the client.
+     */
+    public function getCurrentTeacherStudents(UserInterface $currentUser, Request $request): Response
+    {
+        //Retrieve current teacher trainings list
+        try {
+            $trainingsList = $currentUser->getTeacherTrainings();
+        }
+        catch (\Exception $e) {
+            return new Response(
+                json_encode(["success" => FALSE]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type'=>'application/json']
+            );
+        }
+
+        //Serialization
+        $responseContent = [];
+
+        foreach ($trainingsList as $training) {
+            foreach($training->getParticipants() as $students){
+                $responseContent [] = [
+                    "id"=> $students->getId(),
+                    "lastname" => $students->getLastname(),
+                    "firstname" => $students->getFirstname()
+                ];
+            }
+        }
+
+        return new Response(
+            json_encode($responseContent),
+            Response::HTTP_OK,
+            ['Content-Type'=>'application/json']
+        );
+    }
+
     /*-------------------------      GET ALL TRAININGS FOR CURRENT TEACHER     -----------------------------*/
 
     /**
