@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -49,6 +50,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('val', $id)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+    * @param $resetToken
+    * @return  User|null
+    */
+    public function findOneByToken($resetToken): ?User
+    {
+        try {
+            return $this->createQueryBuilder('u')
+                ->andWhere('u.resetToken = :val')
+                ->setParameter('val', $resetToken)
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (NonUniqueResultException $e) {
+            return "Error Token not found";
+        }
     }
 
 //    /**
