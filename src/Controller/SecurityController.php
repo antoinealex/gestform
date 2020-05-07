@@ -9,11 +9,15 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\EventListener\LoginListener;
+use App\Service\SendMail;
+use App\Template\ResetPasswordMailTemplate;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -27,55 +31,37 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class SecurityController extends AbstractController
 {
 
+
     /**
-     * @Route("/login", name="login", methods={"POST"})
+     * @Route("/test")
+     * @param SendMail $mailer
+     * @param UserInterface $currentUser
+     */
+    public function test(SendMail $mailer, UserInterface $currentUser) {
+        $mailer->setRecipient($currentUser);
+        $mailer->sendResetPasswordMail();
+        $mailer->send();
+    }
+
+    /**
      * @param Request $request
-     * @param AuthenticationUtils $authUtils
-     * @param UserPasswordEncoderInterface $encoder
-     * @param EventDispatcher $eventDispatcher
+     * @param SendMail $mailer
+     * @param TokenGeneratorInterface $tokenGenerator
+     * @return Response
+     * @Route("/forgotpassword", name="forgot_password", methods={"POST"})
+     */
+    public function forgotPasswordSendMail(Request $request, SendMail $mailer, TokenGeneratorInterface $tokenGenerator) : Response
+    {
+        //TODO Generate token and send it to the user
+    }
+
+    /**
+     * @param Request $request
+     * @Route("/resetPassword", name="reset_password", methods={"POST"})
      * @return Response
      */
-    public function login(Request $request, AuthenticationUtils $authUtils, UserPasswordEncoderInterface $encoder): Response
+    public function resetPasswordWithToken(Request $request) : Response
     {
-        $username = $request->request->get("username");
-        $password = $request->request->get("password");
-
-        //Retrive a security encoder
-        //$factory = $this->get("security.encoder_factory");
-
-        //Retrieve user to authenticate
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(["email"=>$username]);
-
-        //Prepare response object
-        $response = new Response();
-        $response->headers->set('Content-type', 'application/json');
-
-        //If user doesn't exist
-        if (!$user) {
-            $response->setContent(json_encode(["success" => FALSE, "error"=>"Username doesn't exist"]));
-            $response->setStatusCode(Response::HTTP_UNAUTHORIZED);
-            return $response;
-        }
-
-        //Check password and set token
-        $salt = $user->getSalt();
-        if(!$encoder->isPasswordValid($user, $password)) {
-            $response->setContent(json_encode(["success" => FALSE, "error"=>"Password isn't valid"]));
-            $response->setStatusCode(Response::HTTP_UNAUTHORIZED);
-            return $response;
-        }
-
-        //To that point, credentials are valid. Setting the session follows
-        $token = new UsernamePasswordToken($user, null, "main", $user->getRoles());
-        $this->get('security.token_storage')->setToken($token);
-        $this->get('session')->set('_security_main', serialize($token));
-
-        $event = new InteractiveLoginEvent($request, $token);
-        $this->get("event_dispatcher")->dispatch("security.interactive_login", $event);
-
-        //Set successful response
-        $response->setContent(json_encode(["success" => TRUE]));
-        $response->setStatusCode(Response::HTTP_OK);
-        return $response;
+        //TODO retrieve token and new password in POST query. Retrieve
     }
 }
