@@ -31,7 +31,7 @@ class TeacherController extends AbstractController
     /*------------------------------      GET ALL TEACHER'S STUDENTS     -----------------------------------*/
 
     /**
-     * @Route("/getCurrentTeacherStudents", name="my_trainings", methods={"GET"})
+     * @Route("/getCurrentTeacherStudents", name="teacher_students", methods={"GET"})
      * @param Request $request Incomming HTTP Request. Passed by the Symfony Routing Service.
      * @param UserInterface $currentUser
      * @return Response Return an application/json response to the client.

@@ -125,9 +125,9 @@ class SecurityController extends AbstractController
             );
         }
 
-        if ($user->getResetTokenExpiration() >= new \DateTime("now")) {
+        if ($user->getResetTokenExpiration() <= new \DateTime("now")) {
             return new Response(
-                $e->getMessage(),
+                json_encode(["success" => FALSE]),
                 Response::HTTP_FORBIDDEN,
                 ["Content-Type" =>  "application/json"]
             );
@@ -135,6 +135,8 @@ class SecurityController extends AbstractController
 
         try {
             $user->setPassword($passwordEncoder->encodePassword($user, $newpassword));
+            $user->setResetToken(null);
+            $user->setResetTokenExpiration(null);
             $em->persist($user);
             $em->flush();
         } catch (\Exception $e) {
