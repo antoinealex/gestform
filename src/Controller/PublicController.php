@@ -27,7 +27,8 @@ class PublicController extends AbstractController
      * @return Response
      * @Route("/getTrainings", name="getTrainings", methods={"GET"})
      */
-    public function getTrainings() : Response {
+    public function getTrainings(): Response
+    {
 
         //Retrieve the trainings objects in persistence layer
         try {
@@ -44,13 +45,19 @@ class PublicController extends AbstractController
 
         //Serialization of each objects
         foreach ($trainings as $training) {
-            if($training->getStartTraining() >= new \DateTime("now")) {
+            if ($training->getStartTraining() >= new \DateTime("now")) {
                 $responseContent[] = [
                     "id"            =>  $training->getId(),
                     "subject"       =>  $training->getSubject(),
                     "description"   =>  $training->getTrainingDescription(),
                     "start"         =>  $training->getStartTraining()->format("Y-m-d h:m"),
                     "end"           =>  $training->getEndTraining()->format("Y-m-d h:m"),
+                    "teacher"       =>  [
+                        "lastname"  =>  $training->getTeacher()->getLastname(),
+                        "firstname" =>  $training->getTeacher()->getFirstname()
+                    ],
+                    "price"         =>  $training->getPricePerStudent(),
+                    "maxstudent"    =>  $training->getMaxStudent(),
                 ];
             }
         }
@@ -71,7 +78,8 @@ class PublicController extends AbstractController
      * @return Response
      * @Route("/getTrainingById", name="getTrainingById", methods={"GET"})
      */
-    public function getTrainingById(Request $request) : Response {
+    public function getTrainingById(Request $request): Response
+    {
 
         //Retrieve the training object from persistence layer
         try {
@@ -101,6 +109,13 @@ class PublicController extends AbstractController
             "description"   =>  $training->getTrainingDescription(),
             "start"         =>  $training->getStartTraining()->format("Y-m-d h:m"),
             "end"           =>  $training->getEndTraining()->format("Y-m-d h:m"),
+            "teacher"       =>  [
+                "lastname"  =>  $training->getTeacher()->getLastname(),
+                "firstname" =>  $training->getTeacher()->getFirstname()
+            ],
+            "price"         =>  $training->getPricePerStudent(),
+            "maxstudent"    =>  $training->getMaxStudent(),
+
         ]);
 
         return new Response(
@@ -117,7 +132,8 @@ class PublicController extends AbstractController
      * @return Response
      * @Route("/getComments", name="getComments", methods={"GET"})
      */
-    public function getComments() : Response {
+    public function getComments(): Response
+    {
 
         //Retrieve the comments in persistence layer
         try {
@@ -158,7 +174,8 @@ class PublicController extends AbstractController
      * @return Response
      * @Route("/getCommentById", name="getCommentById", methods={"GET"})
      */
-    public function getCommentById(Request $request) : Response {
+    public function getCommentById(Request $request): Response
+    {
 
         //Retrieve comment object from persistence layer
         try {

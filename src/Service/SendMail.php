@@ -60,8 +60,9 @@ class SendMail
         //TODO Retrieve User Token and email template. Send mail to the user with the information using php built in mail sender functions.
         $template = new ResetPasswordMailTemplate();
         $token = $this->recipient->getResetToken();
+        $url = $_ENV["FRONTEND_URL"]."resetpassword?token=".$token;
         $this->subject = $this->recipient->getFirstname()." votre demande de réinitialisation de mot de passe GestForm";
-        $this->message = $template->generateMessageBody("test");
+        $this->message = $template->generateMessageBody($url);
     }
 
     /**

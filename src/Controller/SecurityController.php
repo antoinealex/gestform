@@ -7,20 +7,21 @@
 
 namespace App\Controller;
 
+use DateTime;
 use App\Entity\User;
-use App\EventListener\LoginListener;
 use App\Service\SendMail;
+use App\EventListener\LoginListener;
 use App\Template\ResetPasswordMailTemplate;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
  * Class SecurityController
@@ -53,7 +54,54 @@ class SecurityController extends AbstractController
      */
     public function forgotPasswordSendMail(Request $request, SendMail $mailer, TokenGeneratorInterface $tokenGenerator): Response
     {
-        //TODO Generate token and send it to the user
+        $em = $this->getDoctrine()->getManager();
+
+        $exprirationDate = new DateTime('+48 hours');
+
+        //On récupère l'email de la requête
+        $email = $request->request->get("email");
+        //On essaie de récupérer l'email en bdd qui est identique à la requête  
+        try {
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $email]);
+        } catch (\Exception $e) {
+            return new Response(
+                json_encode(["success" => FALSE]),
+                Response::HTTP_FORBIDDEN,
+                ['Content-Type' => 'application/json']
+            );
+        }
+        //On vérifie si l'email existe
+        if ($user == null) {
+            return new Response(
+                json_encode(["error" => "Invalid email"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type' => 'application/json']
+            );
+        } else {
+            //On crée un token
+            $token = $tokenGenerator->generateToken();
+            $user->setResetToken($token);
+            $user->setResetTokenExpiration($exprirationDate);
+            try {
+                $em->persist($user);
+                $em->flush();
+            } catch (\Exception $e) {
+                return new Response(
+                    json_encode(["success" => FALSE]),
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                    ['Content-Type' => 'application/json']
+                );
+            };
+            //On envoie le mail avec un lien vers la page de reset
+            $mailer->setRecipient($user);
+            $mailer->sendResetPasswordMail();
+            $mailer->send();
+        }
+        return new Response(
+            json_encode(["success" => TRUE]),
+            Response::HTTP_OK,
+            ['Content-Type' => 'application/json']
+        );
     }
 
     /**

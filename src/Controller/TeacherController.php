@@ -41,12 +41,11 @@ class TeacherController extends AbstractController
         //Retrieve current teacher trainings list
         try {
             $trainingsList = $currentUser->getTeacherTrainings();
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return new Response(
                 json_encode(["success" => FALSE]),
                 Response::HTTP_INTERNAL_SERVER_ERROR,
-                ['Content-Type'=>'application/json']
+                ['Content-Type' => 'application/json']
             );
         }
 
@@ -54,11 +53,12 @@ class TeacherController extends AbstractController
         $responseContent = [];
 
         foreach ($trainingsList as $training) {
-            foreach($training->getParticipants() as $students){
-                $responseContent [] = [
-                    "id"=> $students->getId(),
+            foreach ($training->getParticipants() as $students) {
+                $responseContent[] = [
+                    "id" => $students->getId(),
                     "lastname" => $students->getLastname(),
-                    "firstname" => $students->getFirstname()
+                    "firstname" => $students->getFirstname(),
+                    "subject" => $training->getSubject()
                 ];
             }
         }
@@ -66,7 +66,7 @@ class TeacherController extends AbstractController
         return new Response(
             json_encode($responseContent),
             Response::HTTP_OK,
-            ['Content-Type'=>'application/json']
+            ['Content-Type' => 'application/json']
         );
     }
 
@@ -79,17 +79,16 @@ class TeacherController extends AbstractController
      * @return Response
      */
 
-    public function getTeacherTrainings(Request $request, UserInterface $currentUser) : Response
+    public function getTeacherTrainings(Request $request, UserInterface $currentUser): Response
     {
         //Retrieve current teacher trainings list
         try {
             $trainingsList = $currentUser->getTeacherTrainings();
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return new Response(
                 json_encode(["success" => FALSE]),
                 Response::HTTP_INTERNAL_SERVER_ERROR,
-                ['Content-Type'=>'application/json']
+                ['Content-Type' => 'application/json']
             );
         }
 
@@ -111,7 +110,7 @@ class TeacherController extends AbstractController
         return new Response(
             json_encode($responseContent),
             Response::HTTP_OK,
-            ['Content-Type'=>'application/json']
+            ['Content-Type' => 'application/json']
         );
     }
 
@@ -125,7 +124,8 @@ class TeacherController extends AbstractController
      * @param Request $request Incomming HTTP Request. Passed by the Symfony Routing Service.
      * @return Response Return an application/json response to the client.
      */
-    public function getAllStudents(UserInterface $teacher, SerializerInterface $serializer, Request $request) : Response {
+    public function getAllStudents(UserInterface $teacher, SerializerInterface $serializer, Request $request): Response
+    {
         $trainings = $teacher->getTeacherTrainings();
 
         foreach ($trainings as $train) {
@@ -139,17 +139,17 @@ class TeacherController extends AbstractController
         }
 
         foreach ($participants as $level1) {
-            foreach ($level1 as $level2)  {
+            foreach ($level1 as $level2) {
                 $res[] = $level2;
             }
         }
-        $participants=$res;
+        $participants = $res;
         $responseContent = json_encode($participants, JSON_FORCE_OBJECT);
 
         return new Response(
             $responseContent,
             Response::HTTP_OK,
-            ['Content-Type'=>'application/json']
+            ['Content-Type' => 'application/json']
         );
     }
 
@@ -166,7 +166,7 @@ class TeacherController extends AbstractController
      * @return Response
      */
 
-    public function updateTraining(Request $request, UserInterface $currentUser) : Response
+    public function updateTraining(Request $request, UserInterface $currentUser): Response
     {
         //Get and decode Data from request body
         $requestParams  =   $request->getContent();
@@ -193,7 +193,7 @@ class TeacherController extends AbstractController
             return new Response(
                 json_encode(["success" => FALSE]),
                 Response::HTTP_UNAUTHORIZED,
-                ['Content-Type'=>'application/json']
+                ['Content-Type' => 'application/json']
             );
         }
 
@@ -203,12 +203,12 @@ class TeacherController extends AbstractController
 
         //Update training object
         try {
-            $training   ->setStartTraining(new DateTime($start_training))
-                        ->setEndTraining(new DateTime($end_training))
-                        ->setMaxStudent((int)$max_student)
-                        ->setPricePerStudent($price_per_student)
-                        ->setTrainingDescription($training_description)
-                        ->setSubject($subject);
+            $training->setStartTraining(new DateTime($start_training))
+                ->setEndTraining(new DateTime($end_training))
+                ->setMaxStudent((int) $max_student)
+                ->setPricePerStudent($price_per_student)
+                ->setTrainingDescription($training_description)
+                ->setSubject($subject);
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
@@ -223,5 +223,4 @@ class TeacherController extends AbstractController
         }
         return $response;
     }
-
 }
