@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\template;
+namespace App\Template;
 
 
 class PDFExport

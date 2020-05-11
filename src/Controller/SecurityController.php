@@ -7,16 +7,21 @@
 
 namespace App\Controller;
 
+use DateTime;
 use App\Entity\User;
+use App\Service\SendMail;
 use App\EventListener\LoginListener;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Template\ResetPasswordMailTemplate;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
  * Class SecurityController
@@ -27,55 +32,125 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class SecurityController extends AbstractController
 {
 
+
     /**
-     * @Route("/login", name="login", methods={"POST"})
+     * @Route("/test")
+     * @param SendMail $mailer
+     * @param UserInterface $currentUser
+     */
+    public function test(SendMail $mailer, UserInterface $currentUser)
+    {
+        $mailer->setRecipient($currentUser);
+        $mailer->sendResetPasswordMail();
+        $mailer->send();
+    }
+
+    /**
      * @param Request $request
-     * @param AuthenticationUtils $authUtils
-     * @param UserPasswordEncoderInterface $encoder
-     * @param EventDispatcher $eventDispatcher
+     * @param SendMail $mailer
+     * @param TokenGeneratorInterface $tokenGenerator
+     * @return Response
+     * @Route("/forgotpassword", name="forgot_password", methods={"POST"})
+     */
+    public function forgotPasswordSendMail(Request $request, SendMail $mailer, TokenGeneratorInterface $tokenGenerator): Response
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $exprirationDate = new DateTime('+48 hours');
+
+        //On récupère l'email de la requête
+        $email = $request->request->get("email");
+        //On essaie de récupérer l'email en bdd qui est identique à la requête  
+        try {
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(['email' => $email]);
+        } catch (\Exception $e) {
+            return new Response(
+                json_encode(["success" => FALSE]),
+                Response::HTTP_FORBIDDEN,
+                ['Content-Type' => 'application/json']
+            );
+        }
+        //On vérifie si l'email existe
+        if ($user == null) {
+            return new Response(
+                json_encode(["error" => "Invalid email"]),
+                Response::HTTP_BAD_REQUEST,
+                ['Content-Type' => 'application/json']
+            );
+        } else {
+            //On crée un token
+            $token = $tokenGenerator->generateToken();
+            $user->setResetToken($token);
+            $user->setResetTokenExpiration($exprirationDate);
+            try {
+                $em->persist($user);
+                $em->flush();
+            } catch (\Exception $e) {
+                return new Response(
+                    json_encode(["success" => FALSE]),
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                    ['Content-Type' => 'application/json']
+                );
+            };
+            //On envoie le mail avec un lien vers la page de reset
+            $mailer->setRecipient($user);
+            $mailer->sendResetPasswordMail();
+            $mailer->send();
+        }
+        return new Response(
+            json_encode(["success" => TRUE]),
+            Response::HTTP_OK,
+            ['Content-Type' => 'application/json']
+        );
+    }
+
+    /**
+     * @param Request $request
+     * @Route("/resetPassword", name="reset_password", methods={"POST"})
      * @return Response
      */
-    public function login(Request $request, AuthenticationUtils $authUtils, UserPasswordEncoderInterface $encoder): Response
+    public function resetPasswordWithToken(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
     {
-        $username = $request->request->get("username");
-        $password = $request->request->get("password");
-
-        //Retrive a security encoder
-        //$factory = $this->get("security.encoder_factory");
-
-        //Retrieve user to authenticate
-        $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(["email"=>$username]);
-
-        //Prepare response object
-        $response = new Response();
-        $response->headers->set('Content-type', 'application/json');
-
-        //If user doesn't exist
-        if (!$user) {
-            $response->setContent(json_encode(["success" => FALSE, "error"=>"Username doesn't exist"]));
-            $response->setStatusCode(Response::HTTP_UNAUTHORIZED);
-            return $response;
+        //TODO retrieve token and new password in POST query. Retrieve
+        $token = $request->request->get("token");
+        $newpassword =  $request->request->get("password");
+        $em = $this->getDoctrine()->getManagerForClass(User::class);
+        try {
+            $user = $this->getDoctrine()->getRepository(User::class)->findOneByToken($token);
+        } catch (NonUniqueResultException $e) {
+            return new Response(
+                $e->getMessage(),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ["Content-Type" =>  "application/json"]
+            );
         }
 
-        //Check password and set token
-        $salt = $user->getSalt();
-        if(!$encoder->isPasswordValid($user, $password)) {
-            $response->setContent(json_encode(["success" => FALSE, "error"=>"Password isn't valid"]));
-            $response->setStatusCode(Response::HTTP_UNAUTHORIZED);
-            return $response;
+        if ($user->getResetTokenExpiration() <= new \DateTime("now")) {
+            return new Response(
+                json_encode(["success" => FALSE]),
+                Response::HTTP_FORBIDDEN,
+                ["Content-Type" =>  "application/json"]
+            );
         }
 
-        //To that point, credentials are valid. Setting the session follows
-        $token = new UsernamePasswordToken($user, null, "main", $user->getRoles());
-        $this->get('security.token_storage')->setToken($token);
-        $this->get('session')->set('_security_main', serialize($token));
+        try {
+            $user->setPassword($passwordEncoder->encodePassword($user, $newpassword));
+            $user->setResetToken(null);
+            $user->setResetTokenExpiration(null);
+            $em->persist($user);
+            $em->flush();
+        } catch (\Exception $e) {
+            return new Response(
+                json_encode(["success" => FALSE]),
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ["Content-Type" => "application/json"]
+            );
+        }
 
-        $event = new InteractiveLoginEvent($request, $token);
-        $this->get("event_dispatcher")->dispatch("security.interactive_login", $event);
-
-        //Set successful response
-        $response->setContent(json_encode(["success" => TRUE]));
-        $response->setStatusCode(Response::HTTP_OK);
-        return $response;
+        return new Response(
+            json_encode(["success" => TRUE]),
+            Response::HTTP_OK,
+            ["Content-Type" => "application/json"]
+        );
     }
 }
