@@ -43,7 +43,7 @@ class ExportController extends AbstractController
         $trainingId = $request->query->get("id");
         $training = $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
 
-        $notAuth = $currentUser->getRoles()[0] == "ROLE_TEACHER" AND $training->getTeacher() != $currentUser;
+        $notAuth = $currentUser->getRoles()[0] == ["ROLE_TEACHER"] AND $training->getTeacher() != $currentUser;
         if ($notAuth) {
             return new Response(
                 json_encode(["success"=>FALSE]),
@@ -100,7 +100,7 @@ class ExportController extends AbstractController
         $trainingId = $request->query->get("id");
         $training = $this->getDoctrine()->getRepository(Training::class)->findOneById($trainingId);
 
-        $notAuth = $currentUser->getRoles()[0] == "ROLE_TEACHER" AND $training->getTeacher() != $currentUser;
+        $notAuth = $currentUser->getRoles()[0] == ["ROLE_TEACHER"] AND $training->getTeacher() != $currentUser;
         if ($notAuth) {
             return new Response(
                 json_encode(["success"=>FALSE]),
