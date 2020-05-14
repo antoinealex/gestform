@@ -40,9 +40,9 @@ class SendMail
     /**
      * SendMail constructor.
      * @param UserInterface $user User will be the recipient of the email.
-     * @param String $format Optional : Format of the email : HTML or TEXT, HTML Default
+     * @param string $format Optional : Format of the email : HTML or TEXT, HTML Default
      */
-    public function __construct(UserInterface $user = null, String $format = "HTML")
+    public function __construct(UserInterface $user = null, string $format = "HTML")
     {
         $this->recipient    =   $user;
         $this->sender       =   $_ENV["APP_EMAIL_ADDRESS"];
