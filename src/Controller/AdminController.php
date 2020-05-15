@@ -95,7 +95,8 @@ class AdminController extends AbstractController
             'phone'     => $user->getPhone(),
             'address'   => $user->getAddress(),
             'postcode'  => $user->getPostcode(),
-            'city'      => $user->getCity()
+            'city'      => $user->getCity(),
+            'hours'     => $user->getHours()
         ];
 
         $response = new Response(json_encode($responseContent));
@@ -216,6 +217,8 @@ class AdminController extends AbstractController
         $address =      $request->request->get("address");
         $postcode =     $request->request->get("postcode");
         $city =         $request->request->get("city");
+        $hours =        $request->request->get("hours");
+        $grade =        $request->request->get("grade");
 
         // On créé l'objet Training
         $em = $this->getDoctrine()->getManagerForClass(User::class);
@@ -232,7 +235,9 @@ class AdminController extends AbstractController
                 ->setPhone($phone)
                 ->setAddress($address)
                 ->setPostcode($postcode)
-                ->setCity($city);
+                ->setCity($city)
+                ->setHours($hours)
+                ->setGrade($grade);
         } catch (\Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
             return $response;
@@ -282,6 +287,8 @@ class AdminController extends AbstractController
         $address =      $content["address"];
         $postcode =     $content["postcode"];
         $city =         $content["city"];
+        $hours =        $content["hours"];
+        $oldHours =     $content["hours"];
 
         // On récupère l'utilisateur qui correspond à l'id donné dans la requête
         $user = $this->getDoctrine()->getRepository(User::class)->findOneById($userId);
@@ -300,7 +307,9 @@ class AdminController extends AbstractController
                 ->setPhone($phone)
                 ->setAddress($address)
                 ->setPostcode($postcode)
-                ->setCity($city);
+                ->setCity($city)
+                ->setHours($hours + $user->getHours());
+
         } catch (Exception $e) {
             $response->setContent(json_encode(["success" => FALSE]));
         }
