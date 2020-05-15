@@ -163,18 +163,33 @@ class StudentController extends AbstractController
             );
         }
 
-        //Add user subscription
-        try {
-            $training->addParticipant($currentStudent);
-            $em->persist($training);
-            $em->flush();
-        } catch (\Exception $e) {
+        //Convert date to hours
+        $hours = $currentStudent->getHours();
+        $startTraining = $training->getStartTraining();
+        $endTraining = $training->getEndTraining();
+        $interval = $endTraining->diff($startTraining);
+        $credit = ($interval->i / 60) + $interval->h;
+
+        if (($hours - $credit) < 0) {
             return new Response(json_encode(["success"=>false]),
                 Response::HTTP_INTERNAL_SERVER_ERROR,
                 ["Content-Type"=>'application/json']
             );
+        } else {
+            //Decrement hours
+            $currentStudent->setHours($hours - $credit);
+            //Add user subscription
+            try {
+                $training->addParticipant($currentStudent);
+                $em->persist($training);
+                $em->flush();
+            } catch (\Exception $e) {
+                return new Response(json_encode(["success"=>false]),
+                    Response::HTTP_INTERNAL_SERVER_ERROR,
+                    ["Content-Type"=>'application/json']
+                );
+            }
         }
-
         return new Response(json_encode(["success"=>true]),
             Response::HTTP_OK,
             ["Content-Type"=>'application/json']
