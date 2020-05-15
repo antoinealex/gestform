@@ -99,6 +99,16 @@ class User implements UserInterface
     private $comments;
 
     /**
+     * @ORM\Column(type="float", length=255, nullable=true)
+     */
+    private $hours;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $grade;
+
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $resetToken;
@@ -409,6 +419,46 @@ class User implements UserInterface
     public function setResetTokenExpiration(?\DateTimeInterface $resetTokenExpiration): self
     {
         $this->resetTokenExpiration = $resetTokenExpiration;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of grade
+     */ 
+    public function getGrade()
+    {
+        return $this->grade;
+    }
+
+    /**
+     * Set the value of grade
+     *
+     * @return  self
+     */ 
+    public function setGrade($grade)
+    {
+        $this->grade = $grade;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of hours
+     */ 
+    public function getHours()
+    {
+        return $this->hours;
+    }
+
+    /**
+     * Set the value of hours
+     *
+     * @return  self
+     */ 
+    public function setHours($hours)
+    {
+        $this->hours = $hours;
 
         return $this;
     }
